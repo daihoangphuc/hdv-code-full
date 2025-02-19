@@ -1,0 +1,600 @@
+Hãy xây dựng một dự án quản lý câu lạc bộ mang tên “Câu lạc bộ Hành Trình Sinh Viên” theo các yêu cầu sau:
+Tên dự án của tôi đặt là HTSV.FE và HTSV.BE
+LƯU Ý: TÔI CẦN MỘT HỆ THỐNG ĐƯỢC THIẾT KẾ THEO KIẾN TRÚC CƠ BẢN VÀ DỄ MỞ RỘNG, KHÔNG CẦN QUÁ PHỨC TẠP
+TÔI CÓ CSDL:
+  -- 1. Bảng KhoaTruongs (Khoa hoặc Trường)
+  CREATE TABLE KhoaTruongs (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      TenKhoaTruong NVARCHAR(255) NOT NULL,
+      MaKhoaTruong NVARCHAR(50) NOT NULL UNIQUE,
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL
+  );
+  GO
+
+  -- 2. Bảng LopHocs (Lớp học)
+  CREATE TABLE LopHocs (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      MaLop NVARCHAR(50) NOT NULL UNIQUE,  -- Ví dụ: 'DA21TTB'
+      TenLop NVARCHAR(255) NOT NULL,
+      KhoaTruongId INT NOT NULL,
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+      CONSTRAINT FK_LopHocs_KhoaTruongs FOREIGN KEY (KhoaTruongId)
+          REFERENCES KhoaTruongs(Id)
+  );
+  GO
+
+  -- 3. Bảng ChucVus (Chức vụ)
+  CREATE TABLE ChucVus (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      TenChucVu NVARCHAR(100) NOT NULL,
+      MoTa NVARCHAR(MAX) NULL,
+      NhiemKy NVARCHAR(50) NOT NULL,  -- Ví dụ: '2023-2024'
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL
+  );
+  GO
+
+  -- 4. Bảng NguoiDungs (Người dùng)
+  CREATE TABLE NguoiDungs (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      MaSoSinhVien NVARCHAR(50) NOT NULL UNIQUE, -- Ví dụ: '110121087'
+      Email NVARCHAR(255) NOT NULL UNIQUE,
+      MatKhau NVARCHAR(255) NOT NULL,
+      HoTen NVARCHAR(255) NOT NULL,
+      SoDienThoai NVARCHAR(50) NULL,
+      LopHocId INT NOT NULL,
+      ChucVuId INT NULL,  -- Có thể null nếu không được phân chức vụ
+      AnhDaiDien NVARCHAR(500) NULL,
+      LanTruyCapCuoi DATETIME2 NULL,
+      TrangThai BIT NOT NULL,  -- 1: Hoạt động, 0: Không hoạt động
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+      CONSTRAINT FK_NguoiDungs_LopHocs FOREIGN KEY (LopHocId)
+          REFERENCES LopHocs(Id),
+      CONSTRAINT FK_NguoiDungs_ChucVus FOREIGN KEY (ChucVuId)
+          REFERENCES ChucVus(Id)
+  );
+  GO
+
+  -- 5. Bảng Quyen (Phân quyền)
+  CREATE TABLE Quyen (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      TenQuyen NVARCHAR(100) NOT NULL,
+      MoTa NVARCHAR(MAX) NULL,
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL
+  );
+  GO
+
+  -- 6. Bảng liên kết NguoiDungs - Quyen (Quan hệ nhiều-nhiều)
+  CREATE TABLE NguoiDung_Quyen (
+      NguoiDungId INT NOT NULL,
+      QuyenId INT NOT NULL,
+      PRIMARY KEY (NguoiDungId, QuyenId),
+      CONSTRAINT FK_NguoiDungQuyen_NguoiDungs FOREIGN KEY (NguoiDungId)
+          REFERENCES NguoiDungs(Id),
+      CONSTRAINT FK_NguoiDungQuyen_Quyen FOREIGN KEY (QuyenId)
+          REFERENCES Quyen(Id)
+  );
+  GO
+
+  -- 7. Bảng HoatDongs (Hoạt động)
+  CREATE TABLE HoatDongs (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      TenHoatDong NVARCHAR(255) NOT NULL,
+      MoTa NVARCHAR(MAX) NULL,
+      ThoiGianBatDau DATETIME2 NOT NULL,
+      ThoiGianKetThuc DATETIME2 NOT NULL,
+      DiaDiem NVARCHAR(255) NULL,
+      SoLuongToiDa INT NULL,
+      ToaDo GEOGRAPHY NULL,  -- Sử dụng kiểu GEOGRAPHY để lưu tọa độ GPS
+      HocKy TINYINT NOT NULL,  -- 1, 2, 3,...
+      NamHoc NVARCHAR(20) NOT NULL,  -- Ví dụ: '2023-2024'
+      TrangThai TINYINT NOT NULL,  -- 0: Sắp diễn ra, 1: Đang diễn ra, 2: Đã kết thúc
+      CongKhai BIT NOT NULL,  -- 0: Không công khai, 1: Công khai
+      FileMinhChung NVARCHAR(500) NULL,
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+  );
+  GO
+
+  -- 8. Bảng NhiemVus (Nhiệm vụ)
+  CREATE TABLE NhiemVus (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      TenNhiemVu NVARCHAR(255) NOT NULL,
+      MoTa NVARCHAR(MAX) NULL,
+      NgayBatDau DATETIME2 NULL,
+      NgayKetThuc DATETIME2 NULL,
+      NguoiTaoId INT NOT NULL,
+      TrangThai TINYINT NOT NULL,  -- 0: Chưa hoàn thành, 1: Đã hoàn thành
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+      CONSTRAINT FK_NhiemVus_NguoiDungs FOREIGN KEY (NguoiTaoId)
+          REFERENCES NguoiDungs(Id)
+  );
+  GO
+
+  -- 9. Bảng PhanCongs (Phân công nhiệm vụ)
+  CREATE TABLE PhanCongs (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      NguoiDuocPhanCongId INT NOT NULL,
+      NhiemVuId INT NOT NULL,
+      ThoiGianPhanCong DATETIME2 NOT NULL,
+      GhiChu NVARCHAR(MAX) NULL,
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+      CONSTRAINT FK_PhanCongs_NguoiDungs FOREIGN KEY (NguoiDuocPhanCongId)
+          REFERENCES NguoiDungs(Id),
+      CONSTRAINT FK_PhanCongs_NhiemVus FOREIGN KEY (NhiemVuId)
+          REFERENCES NhiemVus(Id)
+  );
+  GO
+
+  -- 10. Bảng DangKys (Đăng ký hoạt động)
+  CREATE TABLE DangKys (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      NguoiDangKyId INT NOT NULL,
+      HoatDongId INT NOT NULL,
+      ThoiGianDangKy DATETIME2 NOT NULL,
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+      CONSTRAINT FK_DangKys_NguoiDungs FOREIGN KEY (NguoiDangKyId)
+          REFERENCES NguoiDungs(Id),
+      CONSTRAINT FK_DangKys_HoatDongs FOREIGN KEY (HoatDongId)
+          REFERENCES HoatDongs(Id)
+  );
+  GO
+
+  -- 11. Bảng ThamGias (Tham gia hoạt động & điểm danh)
+  CREATE TABLE ThamGias (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      NguoiThamGiaId INT NOT NULL,
+      HoatDongId INT NOT NULL,
+      TrangThai TINYINT NOT NULL, -- 0: Vắng mặt, 1: Đã tham gia
+      ThoiGianDiemDanh DATETIME2 NULL,
+      HinhThucDiemDanh NVARCHAR(50) NULL, -- Ví dụ: 'Bằng tay', 'Bằng GPS', 'Quét QR', 'Nhận diện khuôn mặt'
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+      CONSTRAINT FK_ThamGias_NguoiDungs FOREIGN KEY (NguoiThamGiaId)
+          REFERENCES NguoiDungs(Id),
+      CONSTRAINT FK_ThamGias_HoatDongs FOREIGN KEY (HoatDongId)
+          REFERENCES HoatDongs(Id)
+  );
+  GO
+
+  -- 12. Bảng TinTucs (Tin tức)
+  CREATE TABLE TinTucs (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      TieuDe NVARCHAR(255) NOT NULL,
+      NoiDung NVARCHAR(MAX) NULL,
+      NgayDang DATETIME2 DEFAULT GETDATE(),
+      NguoiDangTinId INT NOT NULL,
+      FileDinhKem NVARCHAR(500) NULL,
+      TrangThai BIT NOT NULL,  -- 1: Hiện, 0: Ẩn
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+      CONSTRAINT FK_TinTucs_NguoiDungs FOREIGN KEY (NguoiDangTinId)
+          REFERENCES NguoiDungs(Id)
+  );
+  GO
+
+  -- 13. Bảng Logs (Ghi lại log các hành động)
+  CREATE TABLE Logs (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      IP NVARCHAR(50) NOT NULL,
+      NguoiDungId INT NULL,
+      HanhDong NVARCHAR(100) NOT NULL,  -- Ví dụ: 'Đăng nhập'
+      ThoiGian DATETIME2 NOT NULL,
+      KetQua NVARCHAR(50) NOT NULL,  -- Ví dụ: 'Thành công', 'Thất bại'
+      MoTa NVARCHAR(MAX) NULL,
+      GhiChu NVARCHAR(MAX) NULL
+      -- Logs có thể không cần các trường audit chuẩn nếu đã ghi lại ThoiGian, nhưng có thể thêm nếu cần
+  );
+  GO
+
+  -- 14. Bảng TaiChinhs (Tài chính: Thu – Chi)
+  CREATE TABLE TaiChinhs (
+      Id INT PRIMARY KEY IDENTITY(1,1),
+      LoaiGiaoDich TINYINT NOT NULL,  -- 0: Thu, 1: Chi
+      SoTien DECIMAL(18,2) NOT NULL,
+      NgayThucHien DATETIME2 NOT NULL,
+      NguoiThucHienId INT NOT NULL,  -- Người tạo giao dịch
+      NguoiDongTienId INT NULL,      -- Nếu là giao dịch thu, người đóng tiền
+      HoatDongId INT NULL,           -- Nếu giao dịch liên quan đến hoạt động cụ thể
+      MoTa NVARCHAR(MAX) NULL,
+      GhiChu NVARCHAR(MAX) NULL,
+      NgayTao DATETIME2 DEFAULT GETDATE(),
+      NgaySua DATETIME2 NULL,
+      NgayXoa DATETIME2 NULL,
+      CONSTRAINT FK_TaiChinhs_NguoiThucHien FOREIGN KEY (NguoiThucHienId)
+          REFERENCES NguoiDungs(Id),
+      CONSTRAINT FK_TaiChinhs_NguoiDongTien FOREIGN KEY (NguoiDongTienId)
+          REFERENCES NguoiDungs(Id),
+      CONSTRAINT FK_TaiChinhs_HoatDongs FOREIGN KEY (HoatDongId)
+          REFERENCES HoatDongs(Id)
+  );
+  GO
+
+Backend: .NET API 8
+
+Hệ Thống API Quản Lý Câu Lạc Bộ
+Hệ thống này được xây dựng dựa trên cơ sở dữ liệu đã được tối ưu với các bảng:
+
+KhoaTruongs (Khoa/Trường)
+LopHocs (Lớp học)
+ChucVus (Chức vụ)
+NguoiDungs (Người dùng)
+Quyen (Phân quyền) và bảng liên kết NguoiDung_Quyen (Quan hệ nhiều-nhiều)
+HoatDongs (Hoạt động)
+NhiemVus (Nhiệm vụ)
+PhanCongs (Phân công nhiệm vụ)
+DangKys (Đăng ký hoạt động)
+ThamGias (Tham gia & điểm danh)
+TinTucs (Tin tức)
+Logs (Log hành động)
+TaiChinhs (Giao dịch tài chính: Thu – Chi)
+Mỗi bảng đều có các trường audit như NgayTao, NgaySua, NgayXoa (dùng cho soft delete).
+
+1. Xác Thực (Authentication)
+POST /api/auth/register
+Đăng ký tài khoản mới cho sinh viên qua email và mật khẩu.
+Request Body ví dụ: { "maSoSinhVien": "110121087", "email": "sinhvien@domain.com", "matKhau": "password123", "hoTen": "Nguyễn Văn A", "soDienThoai": "0123456789", "lopHocId": 1, "chucVuId": 3, // Có thể null nếu không phân chức vụ "anhDaiDien": "link_anh.jpg" }
+
+POST /api/auth/login
+Đăng nhập bằng Email và mật khẩu.
+Request Body ví dụ: { "email": "sinhvien@domain.com", "matKhau": "password123" }
+Response: JWT token, thông tin người dùng (bao gồm mã sinh viên, vai trò, …) và thời gian hết hạn.
+
+POST /api/auth/logout
+Đăng xuất; có thể xóa token phía client hoặc cập nhật trạng thái session.
+
+2. Quản Lý Khoa – Trường (KhoaTruongs)
+GET /api/khoatruongs
+Lấy danh sách khoa/trường với phân trang và tìm kiếm theo TenKhoaTruong hoặc MaKhoaTruong.
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+GET /api/khoatruongs/{id}
+Lấy chi tiết 1 khoa/trường theo Id.
+
+POST /api/khoatruongs
+Tạo mới khoa/trường.
+Request Body ví dụ: { "tenKhoaTruong": "Trường Đại học CNTT", "maKhoaTruong": "CNTT01" }
+
+PUT /api/khoatruongs/{id}
+Cập nhật thông tin khoa/trường.
+
+DELETE /api/khoatruongs/{id}
+Xóa (soft delete) khoa/trường.
+
+3. Quản Lý Lớp Học (LopHocs)
+GET /api/lophocs
+Lấy danh sách lớp học với phân trang và tìm kiếm theo MaLop hoặc TenLop.
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+GET /api/lophocs/{id}
+Lấy chi tiết lớp học theo Id.
+
+POST /api/lophocs
+Tạo mới lớp học.
+Request Body ví dụ: { "maLop": "DA21TTB", "tenLop": "Đại học 21 - Tin học", "khoaTruongId": 1 }
+
+PUT /api/lophocs/{id}
+Cập nhật thông tin lớp học.
+
+DELETE /api/lophocs/{id}
+Xóa lớp học.
+
+4. Quản Lý Chức Vụ (ChucVus)
+GET /api/chucvus
+Lấy danh sách chức vụ, tìm kiếm theo tên chức vụ hoặc nhiệm kỳ.
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+GET /api/chucvus/{id}
+Lấy chi tiết một chức vụ theo Id.
+
+POST /api/chucvus
+Tạo mới chức vụ.
+Request Body ví dụ: { "tenChucVu": "Chủ nhiệm", "moTa": "Quản lý toàn bộ hoạt động của câu lạc bộ", "nhiemKy": "2023-2024" }
+
+PUT /api/chucvus/{id}
+Cập nhật chức vụ.
+
+DELETE /api/chucvus/{id}
+Xóa chức vụ.
+
+5. Quản Lý Người Dùng (NguoiDungs)
+GET /api/nguoidungs
+Lấy danh sách người dùng với phân trang, tìm kiếm theo MaSoSinhVien, HoTen, Email, …
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+GET /api/nguoidungs/{id}
+Lấy chi tiết người dùng theo Id.
+
+POST /api/nguoidungs
+(Nếu không dùng endpoint register của auth) Tạo mới người dùng với thông tin đăng ký.
+
+PUT /api/nguoidungs/{id}
+Cập nhật hồ sơ người dùng (bao gồm đổi mật khẩu, cập nhật thông tin cá nhân).
+
+DELETE /api/nguoidungs/{id}
+Xóa người dùng (thực hiện soft delete).
+
+6. Phân Quyền (Quyen & NguoiDung_Quyen)
+GET /api/quen
+Lấy danh sách quyền hệ thống với phân trang và tìm kiếm theo TenQuyen.
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+POST /api/nguoidungs/{id}/quyen
+Gán quyền cho người dùng.
+Request Body ví dụ: { "quyenIds": [1, 3, 5] }
+
+DELETE /api/nguoidungs/{id}/quyen/{quyenId}
+Gỡ bỏ quyền khỏi người dùng.
+
+7. Quản Lý Hoạt Động (HoatDongs)
+GET /api/hoatdongs
+Lấy danh sách hoạt động với phân trang, tìm kiếm theo TenHoatDong, Id, TrangThai, HocKy, NamHoc,…
+Query Parameters: pageNumber, pageSize, searchTerm, trangThai, hocKy, namHoc.
+
+GET /api/hoatdongs/{id}
+Lấy chi tiết hoạt động theo Id.
+
+POST /api/hoatdongs
+Tạo mới hoạt động.
+Request Body ví dụ: { "tenHoatDong": "Sinh hoạt cộng đồng", "moTa": "Mô tả chi tiết hoạt động", "thoiGianBatDau": "2024-05-01T08:00:00", "thoiGianKetThuc": "2024-05-01T12:00:00", "diaDiem": "Phòng họp A", "soLuongToiDa": 100, "toaDo": "POINT(105.84117 21.027764)", "hocKy": 2, "namHoc": "2023-2024", "trangThai": 0, "nguoiTaoId": 5, "congKhai": true, "fileMinhChung": "" }
+
+PUT /api/hoatdongs/{id}
+Cập nhật thông tin hoạt động.
+
+DELETE /api/hoatdongs/{id}
+Xóa hoạt động (soft delete).
+
+POST /api/hoatdongs/{id}/minhchung
+Upload/cập nhật file minh chứng cho hoạt động (thường thực hiện sau khi hoạt động kết thúc).
+
+8. Quản Lý Nhiệm Vụ (NhiemVus)
+GET /api/nhiemvus
+Lấy danh sách nhiệm vụ với phân trang, tìm kiếm theo TenNhiemVu, TrangThai,…
+Query Parameters: pageNumber, pageSize, searchTerm, trangThai.
+
+GET /api/nhiemvus/{id}
+Lấy chi tiết nhiệm vụ theo Id.
+
+POST /api/nhiemvus
+Tạo mới nhiệm vụ.
+Request Body ví dụ: { "tenNhiemVu": "Chuẩn bị tài liệu", "moTa": "Chuẩn bị slide và báo cáo", "ngayBatDau": "2024-06-01T08:00:00", "ngayKetThuc": "2024-06-05T17:00:00", "nguoiTaoId": 5, "trangThai": 0 }
+
+PUT /api/nhiemvus/{id}
+Cập nhật nhiệm vụ.
+
+DELETE /api/nhiemvus/{id}
+Xóa nhiệm vụ.
+
+9. Quản Lý Phân Công Nhiệm Vụ (PhanCongs)
+GET /api/phancongs
+Lấy danh sách phân công nhiệm vụ với phân trang, tìm kiếm theo tên người được phân công hoặc tên nhiệm vụ.
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+GET /api/phancongs/{id}
+Lấy chi tiết bản ghi phân công theo Id.
+
+POST /api/phancongs
+Phân công nhiệm vụ cho người dùng.
+Request Body ví dụ: { "nguoiDuocPhanCongId": 7, "nhiemVuId": 3, "thoiGianPhanCong": "2024-05-20T10:00:00", "ghiChu": "Phân công ưu tiên cao" }
+
+PUT /api/phancongs/{id}
+Cập nhật thông tin phân công (ghi chú, thời gian cập nhật).
+
+DELETE /api/phancongs/{id}
+Xóa bản ghi phân công.
+
+10. Quản Lý Đăng Ký Hoạt Động (DangKys)
+GET /api/dangkys
+Lấy danh sách đăng ký hoạt động với phân trang, tìm kiếm theo tên người đăng ký hoặc tên hoạt động.
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+GET /api/dangkys/{id}
+Lấy chi tiết đăng ký theo Id.
+
+POST /api/dangkys
+Người dùng đăng ký tham gia hoạt động.
+Request Body ví dụ: { "nguoiDangKyId": 7, "hoatDongId": 4, "thoiGianDangKy": "2024-05-15T09:00:00" }
+
+PUT /api/dangkys/{id}
+Cập nhật thông tin đăng ký nếu cần.
+
+DELETE /api/dangkys/{id}
+Hủy đăng ký.
+
+11. Quản Lý Tham Gia & Điểm Danh (ThamGias)
+GET /api/thamgias
+Lấy danh sách tham gia hoạt động với phân trang, tìm kiếm theo tên người tham gia hoặc tên hoạt động.
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+GET /api/thamgias/{id}
+Lấy chi tiết bản ghi tham gia theo Id.
+
+POST /api/thamgias
+Ghi nhận tham gia và điểm danh.
+Request Body ví dụ: { "nguoiThamGiaId": 7, "hoatDongId": 4, "trangThai": 1, // 1: Đã tham gia, 0: Vắng mặt "thoiGianDiemDanh": "2024-05-15T09:05:00", "hinhThucDiemDanh": "Bằng GPS" }
+
+PUT /api/thamgias/{id}
+Cập nhật trạng thái tham gia hoặc thông tin điểm danh.
+
+DELETE /api/thamgias/{id}
+Xóa bản ghi tham gia.
+
+12. Quản Lý Tin Tức (TinTucs)
+GET /api/tintucs
+Lấy danh sách tin tức với phân trang, tìm kiếm theo tiêu đề hoặc ngày đăng.
+Query Parameters: pageNumber, pageSize, searchTerm.
+
+GET /api/tintucs/{id}
+Lấy chi tiết tin tức theo Id.
+
+POST /api/tintucs
+Tạo tin tức mới.
+Request Body ví dụ: { "tieuDe": "Thông báo mới", "noiDung": "Nội dung chi tiết tin tức...", "nguoiDangTinId": 5, "fileDinhKem": "link_file.pdf", "trangThai": 1 // 1: Hiện, 0: Ẩn }
+
+PUT /api/tintucs/{id}
+Cập nhật tin tức.
+
+DELETE /api/tintucs/{id}
+Xóa tin tức.
+
+13. Quản Lý Logs (Logs)
+GET /api/logs
+Lấy danh sách log hành động với phân trang, tìm kiếm theo IP, hành động, người dùng,...
+Query Parameters: pageNumber, pageSize, searchTerm.
+(Chỉ dành cho admin để giám sát và audit.)
+14. Quản Lý Tài Chính (TaiChinhs)
+GET /api/taichinhs
+Lấy danh sách giao dịch tài chính với phân trang, tìm kiếm theo loại giao dịch (loaiGiaoDich: 0: Thu, 1: Chi), ngày, số tiền,...
+Query Parameters: pageNumber, pageSize, searchTerm, loaiGiaoDich, tuNgay, denNgay.
+
+GET /api/taichinhs/{id}
+Lấy chi tiết giao dịch tài chính theo Id.
+
+POST /api/taichinhs
+Tạo mới giao dịch tài chính.
+Request Body ví dụ: { "loaiGiaoDich": 0, "soTien": 1500000.00, "ngayThucHien": "2024-05-10T10:00:00", "nguoiThucHienId": 5, "nguoiDongTienId": 7, "hoatDongId": 4, "moTa": "Thu học phí", "ghiChu": "Thanh toán học kỳ II" }
+
+PUT /api/taichinhs/{id}
+Cập nhật giao dịch tài chính.
+
+DELETE /api/taichinhs/{id}
+Xóa giao dịch (soft delete).
+
+Các Yêu Cầu Chung Cho Toàn Bộ API
+Xác Thực & Phân Quyền:
+
+Tất cả các endpoints (ngoại trừ /auth/register và /auth/login) phải được bảo vệ bằng JWT token.
+Sử dụng middleware để xử lý xác thực, thêm token vào header và kiểm tra quyền truy cập.
+Phân Trang & Tìm Kiếm:
+
+Các endpoint GET danh sách cần hỗ trợ tham số: pageNumber, pageSize, searchTerm (và các tham số lọc/sắp xếp khác nếu cần).
+Kết quả trả về gồm: danh sách dữ liệu, tổng số bản ghi, số trang và thông tin phân trang khác.
+Định Dạng Response:
+
+Response thành công: { "success": true, "data": { ... }, "message": "Thông báo" }
+Response lỗi: { "success": false, "error": { "code": "Mã lỗi", "message": "Thông báo chi tiết" } }
+Audit & Logging:
+
+Mọi hành động quan trọng (tạo, cập nhật, xóa, đăng nhập, đăng ký, …) được ghi lại vào bảng Logs để phục vụ kiểm tra an ninh và báo cáo.
+Soft Delete:
+
+Các bảng có trường NgayXoa để thực hiện xóa mềm, giúp bảo toàn lịch sử dữ liệu.
+
+CẤU TRÚC THƯ MỤC
+/Solution
+  /API
+    /Controllers
+      - AuthController.cs
+      - HoatDongController.cs
+      - NguoiDungController.cs
+      - PhanCongNhiemVuController.cs
+      - DangKyHoatDongController.cs
+      - ThongKeController.cs
+      - TinTucController.cs
+      - TaiChinhController.cs
+    /Models
+      - Activity.cs
+      - User.cs
+      - TaskAssignment.cs
+      - Registration.cs
+      - News.cs
+      - Finance.cs
+    /DTOs
+      - ActivityDTO.cs
+      - UserDTO.cs
+      - ...
+    /Services
+      - ActivityService.cs
+      - UserService.cs
+      - ...
+    /Repositories
+      - ActivityRepository.cs
+      - UserRepository.cs
+      - ...
+    /Middleware
+      - JwtMiddleware.cs
+      - ErrorHandlingMiddleware.cs
+    Program.cs
+    appsettings.json
+
+Frontend: .NET MVC 8 với Flowbite TailwindCSS
+
+Xây dựng giao diện người dùng dùng ASP.NET MVC 8.
+Tích hợp Flowbite TailwindCSS để tạo giao diện hiện đại, responsive.
+Các trang giao diện chính bao gồm:
+Trang đăng nhập, đăng ký.
+Trang dashboard hiển thị thông tin hoạt động, tin tức, thống kê.
+Trang quản lý hoạt động: danh sách, chi tiết, tạo mới, cập nhật.
+Trang quản lý người dùng, phân công nhiệm vụ, đăng ký hoạt động.
+Các trang quản lý tin tức và tài chính.
+Cấu trúc thư mục frontend mẫu:
+css
+Sao chép
+Chỉnh sửa
+/Solution
+  /MVC
+    /Controllers
+      - HomeController.cs
+      - AccountController.cs
+      - ActivityController.cs
+      - UserController.cs
+      - NewsController.cs
+      - FinanceController.cs
+      - ...
+    /Views
+      /Shared
+        - _Layout.cshtml
+        - _Error.cshtml
+      /Account
+        - Login.cshtml
+        - Register.cshtml
+      /Activity
+        - Index.cshtml
+        - Details.cshtml
+        - Create.cshtml
+        - Edit.cshtml
+      /User
+        - Index.cshtml
+        - Details.cshtml
+        - Edit.cshtml
+      /News
+        - Index.cshtml
+        - Create.cshtml
+      /Finance
+        - Index.cshtml
+        - Create.cshtml
+    /wwwroot
+      /css
+        - tailwind.css (đã tích hợp Flowbite)
+      /js
+        - custom.js
+    Program.cs
+    Startup.cs (hoặc tích hợp trong Program.cs nếu dùng minimal hosting)
+Yêu cầu chung:
+
+Tích hợp xác thực JWT trên backend và xử lý token trên frontend (lưu trữ trong cookie hoặc localStorage, sử dụng interceptor nếu cần).
+Xử lý lỗi và thông báo người dùng rõ ràng.
+Code cần được viết theo nguyên tắc clean code, có comment hướng dẫn khi cần.
+Dự án cần dễ mở rộng, dễ bảo trì và nâng cấp trong tương lai.
+Các tính năng như upload file (cho minh chứng của hoạt động) và realtime update (có thể sử dụng SignalR nếu cần) nên được cân nhắc tích hợp.
+Hãy tạo toàn bộ code mẫu cho dự án này với đầy đủ cấu trúc thư mục, các controller, model, service và view cơ bản, cũng như cấu hình TailwindCSS với Flowbite cho frontend. Cung cấp các ví dụ mẫu về cách kết nối API backend với giao diện frontend và hướng dẫn cấu hình môi trường để dễ dàng triển khai và nâng cấp sau này.
+
+
