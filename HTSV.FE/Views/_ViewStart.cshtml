@@ -1,0 +1,11 @@
+﻿@{
+    string userRole = Context.Session.GetString("Role") ?? "Member";
+    if (User.IsInRole("Admin") || userRole == "Admin")
+    {
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}

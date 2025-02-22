@@ -1,0 +1,108 @@
+@{
+    ViewData["Title"] = "Hướng dẫn sử dụng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Header section -->
+    <div class="text-center mb-12">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Hướng dẫn sử dụng hệ thống</h1>
+        <p class="text-lg text-gray-600">Tài liệu hướng dẫn chi tiết giúp bạn sử dụng hệ thống một cách hiệu quả</p>
+    </div>
+
+    <!-- Guide sections -->
+    <div class="space-y-8">
+        <!-- Đăng ký và đăng nhập -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <svg class="w-6 h-6 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"/>
+                    </svg>
+                    <h2 class="text-xl font-semibold">Đăng ký và đăng nhập</h2>
+                </div>
+                <div class="prose max-w-none">
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        <li>Truy cập trang đăng ký và điền đầy đủ thông tin cá nhân</li>
+                        <li>Sử dụng email trường cấp và mật khẩu để đăng nhập</li>
+                        <li>Có thể đăng nhập bằng tài khoản sinh viên hoặc tài khoản admin</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quản lý hoạt động -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <svg class="w-6 h-6 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/>
+                    </svg>
+                    <h2 class="text-xl font-semibold">Quản lý hoạt động</h2>
+                </div>
+                <div class="prose max-w-none">
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        <li>Xem danh sách các hoạt động đang diễn ra và sắp diễn ra</li>
+                        <li>Đăng ký tham gia hoạt động bằng cách nhấn vào nút "Đăng ký"</li>
+                        <li>Theo dõi trạng thái đăng ký và tham gia của bạn</li>
+                        <li>Nhận thông báo về các hoạt động mới</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quản lý thông tin cá nhân -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <svg class="w-6 h-6 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                    </svg>
+                    <h2 class="text-xl font-semibold">Quản lý thông tin cá nhân</h2>
+                </div>
+                <div class="prose max-w-none">
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        <li>Cập nhật thông tin cá nhân trong phần "Thông tin cá nhân"</li>
+                        <li>Thay đổi mật khẩu định kỳ để bảo mật tài khoản</li>
+                        <li>Cập nhật ảnh đại diện và thông tin liên hệ</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tính năng cho Admin -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <svg class="w-6 h-6 text-primary mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                    <h2 class="text-xl font-semibold">Dành cho Admin</h2>
+                </div>
+                <div class="prose max-w-none">
+                    <ul class="list-disc list-inside space-y-2 text-gray-600">
+                        <li>Quản lý người dùng và phân quyền</li>
+                        <li>Tạo và quản lý các hoạt động</li>
+                        <li>Quản lý đăng ký và điểm danh</li>
+                        <li>Xem thống kê và báo cáo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support section -->
+    <div class="mt-12 text-center">
+        <h2 class="text-2xl font-semibold mb-4">Cần hỗ trợ thêm?</h2>
+        <p class="text-gray-600 mb-6">Nếu bạn cần hỗ trợ thêm, vui lòng liên hệ với chúng tôi qua:</p>
+        <div class="flex justify-center space-x-4">
+            <a href="https://zalo.me/g/dqqnrd829" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+                    <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/>
+                </svg>
+                Nhóm hỗ trợ Zalo
+            </a>
+        </div>
+    </div>
+</div> 

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTSV.BE", "HTSV.BE\HTSV.BE.csproj", "{5CBAA1C6-78AC-4A11-94C4-46343074FD64}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTSV.FE", "HTSV.FE\HTSV.FE.csproj", "{0F632D32-91CB-4798-BBF0-32E00D4C94D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{5CBAA1C6-78AC-4A11-94C4-46343074FD64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CBAA1C6-78AC-4A11-94C4-46343074FD64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CBAA1C6-78AC-4A11-94C4-46343074FD64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F632D32-91CB-4798-BBF0-32E00D4C94D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F632D32-91CB-4798-BBF0-32E00D4C94D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F632D32-91CB-4798-BBF0-32E00D4C94D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F632D32-91CB-4798-BBF0-32E00D4C94D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

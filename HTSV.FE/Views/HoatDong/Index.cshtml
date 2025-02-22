@@ -1,0 +1,163 @@
+@using HTSV.FE.Models.Enums
+@using HTSV.FE.Models.Common
+@using HTSV.FE.Extensions
+@model PaginatedList<HTSV.FE.Models.HoatDong.HoatDongViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý hoạt động";
+    string userRole = Context.Session.GetString("Role") ?? "Member";
+    if (User.IsInRole("Admin") || userRole == "Admin")
+    {
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}
+
+<div class="container mx-auto px-4">
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">@ViewData["Title"]</h1>
+            @if (User.IsInRole("Admin") || userRole == "Admin")
+            {
+                <a href="@Url.Action("Create")" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Thêm hoạt động mới
+                </a>
+            }
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="mb-6">
+            <div class="flex gap-4">
+                <input type="text" id="searchInput" placeholder="Tìm kiếm hoạt động..." 
+                       class="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="search()" class="bg-gray-100 px-4 py-2 rounded hover:bg-gray-200">
+                    Tìm kiếm
+                </button>
+            </div>
+        </div>
+
+        <!-- Activities List -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên hoạt động</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Địa điểm</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="activitiesList">
+                    <!-- Activities will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex justify-between items-center">
+            <div class="text-sm text-gray-500">
+                Hiển thị <span id="itemCount">0</span> hoạt động
+            </div>
+            <div class="flex gap-2">
+                <button onclick="previousPage()" class="px-3 py-1 border rounded hover:bg-gray-100">Trước</button>
+                <button onclick="nextPage()" class="px-3 py-1 border rounded hover:bg-gray-100">Sau</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentPage = 1;
+        const pageSize = 10;
+
+        async function loadActivities() {
+            try {
+                const response = await fetch(`/api/HoatDong?page=${currentPage}&pageSize=${pageSize}`);
+                const data = await response.json();
+                
+                const tbody = document.getElementById('activitiesList');
+                tbody.innerHTML = '';
+
+                data.items.forEach(activity => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${activity.tenHoatDong}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${new Date(activity.thoiGianBatDau).toLocaleDateString()}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${activity.diaDiem}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                ${activity.trangThai === 'DangDienRa' ? 'bg-green-100 text-green-800' : 
+                                  activity.trangThai === 'ChuaBatDau' ? 'bg-yellow-100 text-yellow-800' : 
+                                  'bg-red-100 text-red-800'}">
+                                ${activity.trangThai}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex gap-2">
+                                <a href="/HoatDong/Details/${activity.id}" class="text-blue-600 hover:text-blue-900">Chi tiết</a>
+                                ${(User.IsInRole("Admin") || '@userRole' === "Admin") ? `
+                                <a href="/HoatDong/Edit/${activity.id}" class="text-indigo-600 hover:text-indigo-900">Sửa</a>
+                                <button onclick="deleteActivity(${activity.id})" class="text-red-600 hover:text-red-900">Xóa</button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                document.getElementById('itemCount').textContent = data.totalItems;
+            } catch (error) {
+                console.error('Error loading activities:', error);
+            }
+        }
+
+        async function deleteActivity(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa hoạt động này?')) return;
+
+            try {
+                const response = await fetch(`/api/HoatDong/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    loadActivities();
+                } else {
+                    alert('Có lỗi xảy ra khi xóa hoạt động');
+                }
+            } catch (error) {
+                console.error('Error deleting activity:', error);
+                alert('Có lỗi xảy ra khi xóa hoạt động');
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadActivities();
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadActivities();
+        }
+
+        function search() {
+            currentPage = 1;
+            loadActivities();
+        }
+
+        // Load activities when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadActivities();
+        });
+    </script>
+} 

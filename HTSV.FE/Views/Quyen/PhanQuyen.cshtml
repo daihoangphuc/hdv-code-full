@@ -1,0 +1,180 @@
+@model HTSV.FE.Models.Quyen.PhanQuyenModel
+@{
+    ViewData["Title"] = "Phân quyền người dùng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var token = Context.Session.GetString("TokenUser");
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-6">Phân quyền người dùng</h2>
+
+        <form id="phanQuyenForm" class="space-y-6">
+            <!-- Chọn người dùng -->
+            <div>
+                <label for="nguoiDungId" class="block text-sm font-medium text-gray-700 mb-2">Chọn người dùng</label>
+                <select id="nguoiDungId" name="nguoiDungId" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-md" required>
+                    <option value="">-- Chọn người dùng --</option>
+                </select>
+            </div>
+
+            <!-- Danh sách quyền -->
+            <div>
+                <label for="quyenIds" class="block text-sm font-medium text-gray-700 mb-2">Chọn quyền</label>
+                <select id="quyenIds" name="quyenIds" multiple class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-md" required>
+                    <!-- Danh sách quyền sẽ được thêm vào đây bằng JavaScript -->
+                </select>
+                <p class="mt-1 text-sm text-gray-500">Giữ Ctrl (Windows) hoặc Command (Mac) để chọn nhiều quyền</p>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="history.back()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Quay lại
+                </button>
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Lưu thay đổi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
+    <script>
+        const token = '@token';
+        
+        // Cấu hình toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+        }
+
+        $(document).ready(function() {
+            console.log('Document ready');
+            // Load danh sách người dùng
+            loadNguoiDung();
+            // Load danh sách quyền
+            loadQuyen();
+
+            // Xử lý submit form
+            $('#phanQuyenForm').on('submit', function(e) {
+                console.log('Form submitted');
+                e.preventDefault();
+                phanQuyen();
+            });
+        });
+
+        function loadNguoiDung() {
+            console.log('Loading users...');
+            $.ajax({
+                url: 'http://localhost:5032/api/NguoiDung',
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    console.log('Users response:', response);
+                    if (response.success) {
+                        const select = $('#nguoiDungId');
+                        response.data.items.forEach(user => {
+                            select.append(`<option value="${user.id}">${user.hoTen} (${user.email})</option>`);
+                        });
+                    } else {
+                        toastr.error('Không thể tải danh sách người dùng');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading users:', error);
+                    toastr.error('Đã xảy ra lỗi khi tải danh sách người dùng');
+                }
+            });
+        }
+
+        function loadQuyen() {
+            console.log('Loading permissions...');
+            $.ajax({
+                url: 'http://localhost:5032/api/Quyen?PageIndex=1&PageSize=100',
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    console.log('Permissions response:', response);
+                    if (response.success) {
+                        const select = $('#quyenIds');
+                        response.data.items.forEach(quyen => {
+                            select.append(`<option value="${quyen.id}">${quyen.tenQuyen} - ${quyen.moTa}</option>`);
+                        });
+                    } else {
+                        toastr.error('Không thể tải danh sách quyền');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading permissions:', error);
+                    toastr.error('Đã xảy ra lỗi khi tải danh sách quyền');
+                }
+            });
+        }
+
+        function phanQuyen() {
+            const nguoiDungId = $('#nguoiDungId').val();
+            const quyenIds = $('#quyenIds').val();
+
+            console.log('Submitting data:', {
+                nguoiDungId: nguoiDungId,
+                quyenIds: quyenIds
+            });
+
+            if (!nguoiDungId) {
+                toastr.error('Vui lòng chọn người dùng');
+                return;
+            }
+
+            if (!quyenIds || quyenIds.length === 0) {
+                toastr.error('Vui lòng chọn ít nhất một quyền');
+                return;
+            }
+
+            const data = {
+                nguoiDungId: parseInt(nguoiDungId),
+                quyenIds: quyenIds.map(id => parseInt(id))
+            };
+
+            console.log('Sending data to API:', data);
+
+            $.ajax({
+                url: 'http://localhost:5032/api/Quyen/phan-quyen',
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(data),
+                success: function(response) {
+                    console.log('API response:', response);
+                    if (response.success) {
+                        toastr.success('Phân quyền thành công');
+                        setTimeout(() => {
+                            window.location.href = '/Quyen';
+                        }, 1500);
+                    } else {
+                        toastr.error(response.message || 'Không thể phân quyền');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('API error:', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
+                    toastr.error('Đã xảy ra lỗi khi phân quyền');
+                }
+            });
+        }
+    </script>
+} 

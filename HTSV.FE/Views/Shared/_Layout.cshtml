@@ -1,0 +1,133 @@
+﻿@using HTSV.FE.Controllers
+@using HTSV.FE.Models.NguoiDung
+@inject HTSV.FE.Services.ISessionService SessionService
+@{
+    var userInfo = SessionService.Get<NguoiDungViewModel>("CurrentUser");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Câu Lạc Bộ Sinh Viên</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4aa3df',
+                        secondary: '#ff65c5',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="bg-gray-50">
+    <header>
+        <!-- Main Navigation -->
+        <nav class="fixed top-0 z-50 w-full bg-white border-b border-gray-200">
+            <div class="max-w-[1600px] mx-auto px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-start">
+                        <a href="/" class="flex items-center">
+                            <img src="/images/logo.png" alt="Logo" class="h-8 mr-3" />
+                        </a>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="flex items-center gap-4">
+                            <a href="/" class="text-gray-700 hover:text-primary">Trang chủ</a>
+                            <a href="/HuongDan" class="text-gray-700 hover:text-primary">Hướng dẫn sử dụng</a>
+                            <a href="https://zalo.me/g/dqqnrd829" class="text-gray-700 hover:text-primary">Nhóm hỗ trợ</a>
+                            @if (User.Identity?.IsAuthenticated ?? false)
+                            {
+                                <div class="relative">
+                                    <button type="button" class="flex text-sm items-center gap-2" id="user-menu-button" aria-expanded="false" data-dropdown-toggle="user-dropdown">
+                                        <span class="text-gray-700">@User.Identity.Name</span>
+                                        <img class="w-8 h-8 rounded-full" src="@(string.IsNullOrEmpty(userInfo?.AnhDaiDien) ? "/images/avatar-default.png" : userInfo.AnhDaiDien)" alt="user photo">
+                                    </button>
+                                    <div class="hidden z-50 my-4 w-56 text-base list-none bg-white rounded divide-y divide-gray-100 shadow" id="user-dropdown">
+                                        <div class="px-4 py-3" role="none">
+                                            <p class="text-sm text-gray-900" role="none">@User.Identity.Name</p>
+                                            <p class="text-sm font-medium text-gray-900 truncate" role="none">@User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value</p>
+                                        </div>
+                                        <ul class="py-1" role="none">
+                                            @if (User.IsInRole("Admin"))
+                                            {
+                                                <li>
+                                                    <a href="/Admin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Quản trị</a>
+                                                </li>
+                                            }
+                                            <li>
+                                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Thông tin cá nhân</a>
+                                            </li>
+                                            <li>
+                                                <form asp-controller="Account" asp-action="Logout" method="post" class="block">
+                                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Đăng xuất</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Login", "Account")" class="text-white bg-primary hover:bg-primary/90 px-4 py-2 rounded-lg">Đăng nhập</a>
+                                <a href="@Url.Action("Register", "Account")" class="text-primary border border-primary hover:bg-primary/10 px-4 py-2 rounded-lg">Đăng ký</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+@*         <!-- Notification Bar -->
+        <div class="fixed top-[60px] z-40 w-full bg-blue-600">
+            <div class="max-w-[1600px] mx-auto px-4">
+                <div class="flex items-center justify-between text-white py-2 text-sm">
+                    <div class="flex items-center space-x-4 overflow-x-auto whitespace-nowrap">
+                        <a href="#" class="hover:underline">Hội thảo kỹ năng lãnh đạo (15/03/2025)</a>
+                        <span>|</span>
+                        <a href="#" class="hover:underline">Đào tạo kỹ năng mềm (01/04/2025)</a>
+                        <span>|</span>
+                        <a href="#" class="hover:underline">Website Quản Lý Câu Lạc Bộ: Công Cụ Hiện Đại Giúp Tăng Hiệu Quả</a>
+                    </div>
+                </div>
+            </div>
+        </div> *@
+    </header>
+
+    <div class="mt-32 max-w-[1600px] mx-auto px-4 py-8">
+        @if (TempData["Success"] != null)
+        {
+            <div class="mb-4 rounded-lg bg-green-50 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">
+                            @TempData["Success"]
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

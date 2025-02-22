@@ -1,0 +1,157 @@
+@model HTSV.FE.Models.NguoiDung.CreateNguoiDungViewModel
+
+@{
+    ViewData["Title"] = "Tạo người dùng mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">@ViewData["Title"]</h2>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <div asp-validation-summary="All" class="text-sm"></div>
+            </div>
+        }
+
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div class="grid gap-6 mb-6">
+                <div>
+                    <label asp-for="MaSoSinhVien" class="block mb-2 text-sm font-medium text-gray-900"></label>
+                    <input asp-for="MaSoSinhVien" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" />
+                    <span asp-validation-for="MaSoSinhVien" class="text-red-500 text-xs mt-1"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Email" class="block mb-2 text-sm font-medium text-gray-900"></label>
+                    <input asp-for="Email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" />
+                    <span asp-validation-for="Email" class="text-red-500 text-xs mt-1"></span>
+                </div>
+
+                <div>
+                    <label asp-for="MatKhau" class="block mb-2 text-sm font-medium text-gray-900"></label>
+                    <input asp-for="MatKhau" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" />
+                    <span asp-validation-for="MatKhau" class="text-red-500 text-xs mt-1"></span>
+                </div>
+
+                <div>
+                    <label asp-for="HoTen" class="block mb-2 text-sm font-medium text-gray-900"></label>
+                    <input asp-for="HoTen" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" />
+                    <span asp-validation-for="HoTen" class="text-red-500 text-xs mt-1"></span>
+                </div>
+
+                <div>
+                    <label asp-for="SoDienThoai" class="block mb-2 text-sm font-medium text-gray-900"></label>
+                    <input asp-for="SoDienThoai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" />
+                    <span asp-validation-for="SoDienThoai" class="text-red-500 text-xs mt-1"></span>
+                </div>
+
+                <div>
+                    <label asp-for="LopHocId" class="block mb-2 text-sm font-medium text-gray-900"></label>
+                    <select asp-for="LopHocId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5">
+                        <option value="">Chọn lớp</option>
+                    </select>
+                    <span asp-validation-for="LopHocId" class="text-red-500 text-xs mt-1"></span>
+                </div>
+
+                <div>
+                    <label asp-for="ChucVuId" class="block mb-2 text-sm font-medium text-gray-900"></label>
+                    <select asp-for="ChucVuId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5">
+                        <option value="">Chọn chức vụ</option>
+                    </select>
+                    <span asp-validation-for="ChucVuId" class="text-red-500 text-xs mt-1"></span>
+                </div>
+
+                <div>
+                    <label asp-for="AnhDaiDienFile" class="block mb-2 text-sm font-medium text-gray-900"></label>
+                    <input asp-for="AnhDaiDienFile" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" />
+                    <span asp-validation-for="AnhDaiDienFile" class="text-red-500 text-xs mt-1"></span>
+                    <img id="preview-avatar" src="#" alt="Preview" class="hidden mt-2 w-20 h-20 rounded-full object-cover" />
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button type="submit" class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                    <i class="fas fa-user-plus mr-2"></i>Tạo người dùng
+                </button>
+                <a asp-action="Index" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+                    <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Preview ảnh khi chọn file
+        document.getElementById('AnhDaiDienFile').addEventListener('change', function (e) {
+            const preview = document.getElementById('preview-avatar');
+            const file = e.target.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '#';
+                preview.classList.add('hidden');
+            }
+        });
+
+        // Load danh sách lớp học
+        async function loadLopHoc() {
+            try {
+                const response = await fetch('/LopHoc/GetAll');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('LopHocId');
+                    select.innerHTML = '<option value="">Chọn lớp</option>';
+                    result.data.forEach(lop => {
+                        const option = document.createElement('option');
+                        option.value = lop.id;
+                        option.textContent = lop.tenLop;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading lop hoc:', error);
+            }
+        }
+
+        // Load danh sách chức vụ
+        async function loadChucVu() {
+            try {
+                const response = await fetch('/ChucVu/GetAll');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('ChucVuId');
+                    select.innerHTML = '<option value="">Chọn chức vụ</option>';
+                    result.data.forEach(chucvu => {
+                        const option = document.createElement('option');
+                        option.value = chucvu.id;
+                        option.textContent = chucvu.tenChucVu;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading chuc vu:', error);
+            }
+        }
+
+        // Load dữ liệu khi trang được tải
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLopHoc();
+            loadChucVu();
+        });
+    </script>
+
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

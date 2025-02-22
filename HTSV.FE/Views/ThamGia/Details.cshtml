@@ -1,0 +1,276 @@
+@using HTSV.FE.Models.ThamGia
+@model ThamGiaDTO
+
+@{
+    ViewData["Title"] = "Chi tiết tham gia hoạt động";
+    string userRole = Context.Session.GetString("Role") ?? "Member";
+    if (User.IsInRole("Admin") || userRole == "Admin")
+    {
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}
+
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
+    <div class="mb-1 w-full">
+        <div class="mb-4">
+            <nav class="flex mb-4" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <a href="/" class="text-gray-700 hover:text-primary">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                            </svg>
+                            Trang chủ
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <a href="/ThamGia" class="text-gray-700 hover:text-primary">Danh sách tham gia</a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-500">Chi tiết</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Chi tiết tham gia hoạt động</h1>
+        </div>
+    </div>
+</div>
+
+<div class="flex flex-col md:flex-row gap-4 p-4">
+    <div class="w-full md:w-1/2 bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Thông tin tham gia</h2>
+        <div class="space-y-4">
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-sm font-medium text-gray-500">Người tham gia:</div>
+                <div class="col-span-2 text-sm text-gray-900">@Model.TenNguoiThamGia</div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-sm font-medium text-gray-500">Hoạt động:</div>
+                <div class="col-span-2 text-sm text-gray-900">@Model.TenHoatDong</div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-sm font-medium text-gray-500">Thời gian điểm danh:</div>
+                <div class="col-span-2 text-sm text-gray-900">
+                    @(Model.ThoiGianDiemDanh?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa điểm danh")
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-sm font-medium text-gray-500">Trạng thái:</div>
+                <div class="col-span-2">
+                    @{
+                        var (statusText, statusClass) = Model.TrangThai switch
+                        {
+                            0 => ("Chưa điểm danh", "text-yellow-500"),
+                            1 => ("Đã điểm danh", "text-green-500"),
+                            2 => ("Vắng mặt", "text-red-500"),
+                            _ => ("Không xác định", "text-gray-500")
+                        };
+                    }
+                    <span class="@statusClass text-sm font-medium">@statusText</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-sm font-medium text-gray-500">Ghi chú:</div>
+                <div class="col-span-2 text-sm text-gray-900">@(Model.GhiChu ?? "Không có")</div>
+            </div>
+            @if (Model.KinhDo.HasValue && Model.ViDo.HasValue)
+            {
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-sm font-medium text-gray-500">Vị trí điểm danh:</div>
+                    <div class="col-span-2 text-sm text-gray-900">
+                        <div>Kinh độ: @Model.KinhDo</div>
+                        <div>Vĩ độ: @Model.ViDo</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="w-full md:w-1/2 space-y-4">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Cập nhật trạng thái</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="trangThai" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                        <select id="trangThai" name="trangThai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5">
+                            @foreach (var status in new[] {
+                                new { Value = 0, Text = "Chưa điểm danh" },
+                                new { Value = 1, Text = "Đã điểm danh" },
+                                new { Value = 2, Text = "Vắng mặt" }
+                            })
+                            {
+                                if (Model.TrangThai == status.Value)
+                                {
+                                    <option value="@status.Value" selected>@status.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@status.Value">@status.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label for="ghiChu" class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                        <textarea id="ghiChu" name="ghiChu" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5">@Model.GhiChu</textarea>
+                    </div>
+                    <button type="button" onclick="updateTrangThai()" class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                            <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
+                        </svg>
+                        Cập nhật
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Điểm danh</h2>
+                <div class="flex gap-2">
+                    <button type="button" onclick="diemDanh()" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        Điểm danh
+                    </button>
+                    <button type="button" onclick="diemDanhGPS()" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                        </svg>
+                        Điểm danh GPS
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="p-4">
+    <a href="@Url.Action("Index")" class="text-white bg-gray-500 hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+        </svg>
+        Quay lại
+    </a>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
+    <script>
+        // Cấu hình toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+        }
+
+        function updateTrangThai() {
+            var data = {
+                trangThai: parseInt($("#trangThai").val()),
+                ghiChu: $("#ghiChu").val()
+            };
+
+            $.ajax({
+                url: '@Url.Action("CapNhatTrangThai", new { id = Model.Id })',
+                type: 'PUT',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                success: function(result) {
+                    if (result.success) {
+                        toastr.success('Cập nhật trạng thái thành công');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        toastr.error(result.message || 'Cập nhật trạng thái thất bại');
+                    }
+                },
+                error: function() {
+                    toastr.error('Đã xảy ra lỗi');
+                }
+            });
+        }
+
+        function diemDanh() {
+            var data = {
+                hoatDongId: @Model.HoatDongId,
+                maSinhVien: '@ViewBag.MaSinhVien'
+            };
+
+            $.ajax({
+                url: '@Url.Action("DiemDanh")',
+                type: 'POST',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                success: function(result) {
+                    if (result.success) {
+                        toastr.success('Điểm danh thành công');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        toastr.error(result.message || 'Điểm danh thất bại');
+                    }
+                },
+                error: function() {
+                    toastr.error('Đã xảy ra lỗi');
+                }
+            });
+        }
+
+        function diemDanhGPS() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var data = {
+                        hoatDongId: @Model.HoatDongId,
+                        maSinhVien: '@ViewBag.MaSinhVien',
+                        kinhDo: position.coords.longitude,
+                        viDo: position.coords.latitude
+                    };
+
+                    $.ajax({
+                        url: '@Url.Action("DiemDanhGPS")',
+                        type: 'POST',
+                        data: JSON.stringify(data),
+                        contentType: 'application/json',
+                        success: function(result) {
+                            if (result.success) {
+                                toastr.success('Điểm danh GPS thành công');
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1500);
+                            } else {
+                                toastr.error(result.message || 'Điểm danh GPS thất bại');
+                            }
+                        },
+                        error: function() {
+                            toastr.error('Đã xảy ra lỗi');
+                        }
+                    });
+                }, function(error) {
+                    toastr.error('Không thể lấy vị trí GPS: ' + error.message);
+                });
+            } else {
+                toastr.error('Trình duyệt không hỗ trợ GPS');
+            }
+        }
+    </script>
+} 

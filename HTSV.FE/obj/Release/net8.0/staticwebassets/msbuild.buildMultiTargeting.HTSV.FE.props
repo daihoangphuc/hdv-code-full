@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\HTSV.FE.props" />
+</Project>

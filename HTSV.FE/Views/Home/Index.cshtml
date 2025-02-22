@@ -1,0 +1,513 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Trang chủ";
+    var userRole = Context.Session.GetString("Role");
+}
+
+@* <div class="container mx-auto px-4">
+    @if (User.IsInRole("Admin") || userRole == "Admin")
+    {
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h1 class="text-2xl font-bold mb-4">Trang quản trị hệ thống</h1>
+            <p class="text-gray-600">Chào mừng đến với trang quản trị. Vui lòng sử dụng menu bên trái để truy cập các chức năng quản lý.</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h1 class="text-2xl font-bold mb-4">Trang chủ sinh viên</h1>
+            <p class="text-gray-600">Chào mừng đến với hệ thống quản lý hoạt động sinh viên. Bạn có thể xem và đăng ký tham gia các hoạt động tại đây.</p>
+        </div>
+    }
+</div> *@
+
+<!-- Hero Section -->
+<div class="relative overflow-hidden bg-white">
+    <div class="mx-auto max-w-7xl">
+        <div class="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:w-full lg:max-w-2xl lg:pb-28 xl:pb-32">
+            <main class="mx-auto mt-10 max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                <div class="sm:text-center lg:text-left">
+                    <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+                        <span class="block text-primary xl:inline">Câu Lạc Bộ</span>
+                        <span class="block text-secondary xl:inline">Hành trình sinh viên</span>
+                    </h1>
+                    <p class="mt-3 text-base text-gray-500 sm:mx-auto sm:mt-5 sm:max-w-xl sm:text-lg md:mt-5 md:text-xl lg:mx-0">
+                        Nơi kết nối và phát triển tài năng
+                    </p>
+                    <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                        <div class="rounded-md shadow">
+                            <a href="#" class="flex w-full items-center justify-center rounded-md border border-transparent bg-primary px-8 py-3 text-base font-medium text-white hover:bg-primary/90 md:py-4 md:px-10 md:text-lg">
+                                Tham gia ngay
+                            </a>
+                        </div>
+                        <div class="mt-3 sm:mt-0 sm:ml-3">
+                            <a href="#" class="flex w-full items-center justify-center rounded-md border border-transparent bg-secondary px-8 py-3 text-base font-medium text-white hover:bg-secondary/90 md:py-4 md:px-10 md:text-lg">
+                                Tìm hiểu thêm
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+        <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:h-full lg:w-full" src="images/hero.png" alt="Hero image">
+    </div>
+</div>
+
+<!-- News Section -->
+<div class="py-14 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:text-center mb-8">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900">Tin tức mới nhất</h2>
+        </div>
+        <div class="swiper newsSwiper">
+            <div class="swiper-wrapper">
+                @foreach (var news in Model.LatestNews)
+                {
+                    <div class="swiper-slide">
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <img src="@news.FileDinhKem" alt="@news.TieuDe" class="w-full h-48 object-cover">
+                            <div class="p-6">
+                                <h3 class="text-xl font-semibold mb-2 news-title">@news.TieuDe</h3>
+                                <p class="text-gray-600">@news.TomTat</p>
+                                <a href="/TinTuc/Details/@news.Id" class="mt-4 inline-block text-primary hover:text-primary/90">Đọc thêm →</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </div>
+</div>
+<style>
+    .news-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Giới hạn hiển thị 2 dòng */
+        -webkit-box-orient: vertical;
+    }
+</style>
+<!-- Hoạt động sắp diễn ra -->
+<div class="py-14 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:text-center mb-8">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-900">Hoạt động sắp diễn ra</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var hoatDong in Model.UpcomingActivities)
+            {
+                <div class="bg-white border border-gray-200 rounded-lg shadow">
+                    @if (!string.IsNullOrEmpty(hoatDong.AnhBia))
+                    {
+                        <img class="rounded-t-lg w-full h-48 object-cover" src="@hoatDong.AnhBia" alt="@hoatDong.TenHoatDong" />
+                    }
+                    <div class="p-5">
+                        <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900">@hoatDong.TenHoatDong</h5>
+                        <p class="mb-3 text-sm text-gray-600">
+                            <span class="flex items-center mb-1">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                </svg>
+                                @hoatDong.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")
+                            </span>
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                </svg>
+                                @hoatDong.DiaDiem
+                            </span>
+                        </p>
+                        @if (User.IsInRole("Member"))
+                        {
+                            <a href="@Url.Action("Details", "HoatDong", new { id = hoatDong.Id })"
+                               class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-primary rounded-lg hover:bg-primary-dark focus:ring-4 focus:outline-none focus:ring-primary/50">
+                                Xem chi tiết
+                                <svg class="w-3.5 h-3.5 ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+                                </svg>
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="text-sm text-gray-500">
+                                Đăng nhập với tư cách thành viên để xem chi tiết và đăng ký
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Management Board Section -->
+    <div class="py-12 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center mb-8">
+                <h2 class="text-3xl font-bold tracking-tight text-gray-900">Ban Chủ Nhiệm</h2>
+                <p class="mt-4 text-lg text-gray-600">Đội ngũ lãnh đạo của Câu Lạc Bộ</p>
+            </div>
+            <div class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
+                @foreach (var member in Model.ManagementBoard)
+                {
+                    <div class="text-center">
+                        <div class="relative">
+                            <img class="mx-auto h-40 w-40 rounded-full object-cover" src="@member.AnhDaiDien" alt="@member.HoTen">
+                            <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                                <div class="inline-flex items-center rounded-full bg-primary px-4 py-1 text-sm font-medium text-white">
+                                    @member.TenChucVu
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <h3 class="text-lg font-medium text-gray-900">@member.HoTen</h3>
+                            <p class="text-sm text-gray-500">@member.Email</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal form -->
+    <div id="crud-modal" tabindex="-1" aria-hidden="true" class="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full hidden">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <span class="create-text">Thêm người dùng</span>
+                        <span class="update-text hidden">Cập nhật người dùng</span>
+                    </h3>
+                    <button type="button" onclick="closeModal()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Đóng modal</span>
+                    </button>
+                </div>
+                <form id="crud-form" class="p-4 md:p-5" enctype="multipart/form-data">
+                    <input type="hidden" id="nguoidung-id" name="id" />
+                    <div class="grid gap-4 mb-4 grid-cols-2">
+                        <div class="col-span-2">
+                            <label for="hoten" class="block mb-2 text-sm font-medium text-gray-900">Họ tên</label>
+                            <input type="text" name="hoten" id="hoten" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label for="masosinhvien" class="block mb-2 text-sm font-medium text-gray-900">MSSV</label>
+                            <input type="text" name="masosinhvien" id="masosinhvien" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label for="email" class="block mb-2 text-sm font-medium text-gray-900">Email</label>
+                            <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label for="sodienthoai" class="block mb-2 text-sm font-medium text-gray-900">Số điện thoại</label>
+                            <input type="tel" name="sodienthoai" id="sodienthoai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label for="lophocid" class="block mb-2 text-sm font-medium text-gray-900">Lớp</label>
+                            <select name="lophocid" id="lophocid" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                                <option value="">Chọn lớp</option>
+                            </select>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label for="chucvuid" class="block mb-2 text-sm font-medium text-gray-900">Chức vụ</label>
+                            <select name="chucvuid" id="chucvuid" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                                <option value="">Chọn chức vụ</option>
+                            </select>
+                        </div>
+                        <div class="col-span-2">
+                            <label for="anhdaidien" class="block mb-2 text-sm font-medium text-gray-900">Ảnh đại diện</label>
+                            <input type="file" name="AnhDaiDienFile" id="anhdaidien" accept="image/*" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+                            <img id="preview-avatar" class="mt-2 w-20 h-20 rounded-full hidden" alt="Preview">
+                        </div>
+                        <div class="col-span-2 password-fields">
+                            <label for="matkhau" class="block mb-2 text-sm font-medium text-gray-900">Mật khẩu</label>
+                            <input type="password" name="matkhau" id="matkhau" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div class="col-span-2 password-fields">
+                            <label for="xacnhanmatkhau" class="block mb-2 text-sm font-medium text-gray-900">Xác nhận mật khẩu</label>
+                            <input type="password" name="xacnhanmatkhau" id="xacnhanmatkhau" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button type="submit" class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                            <span class="create-text">Thêm người dùng</span>
+                            <span class="update-text hidden">Cập nhật</span>
+                        </button>
+                        <button type="button" onclick="closeModal()" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900">
+                            Hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            var swiper = new Swiper(".newsSwiper", {
+                slidesPerView: 1,
+                spaceBetween: 30,
+                loop: true,
+                pagination: {
+                    el: ".swiper-pagination",
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: ".swiper-button-next",
+                    prevEl: ".swiper-button-prev",
+                },
+                breakpoints: {
+                    640: {
+                        slidesPerView: 2,
+                    },
+                    1024: {
+                        slidesPerView: 3,
+                    },
+                },
+                autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                },
+            });
+
+            const form = document.getElementById('crud-form');
+            const modal = document.getElementById('crud-modal');
+            const deleteModal = document.getElementById('delete-modal');
+            let deleteId = 0;
+
+            // Thêm biến để lấy token
+            const tokenUser = '@Context.Session.GetString("TokenUser")';
+
+            async function loadLopHoc() {
+                try {
+                    const response = await fetch('/LopHoc/GetAll', {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const lopHocSelect = document.getElementById('lophocid');
+                        lopHocSelect.innerHTML = '<option value="">Chọn lớp</option>';
+                        result.data.forEach(lop => {
+                            const option = document.createElement('option');
+                            option.value = lop.id;
+                            option.textContent = lop.tenLop;
+                            lopHocSelect.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading lop hoc:', error);
+                }
+            }
+
+            async function loadChucVu() {
+                try {
+                    const response = await fetch('/ChucVu/GetAll', {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const chucVuSelect = document.getElementById('chucvuid');
+                        chucVuSelect.innerHTML = '<option value="">Chọn chức vụ</option>';
+                        result.data.forEach(chucVu => {
+                            const option = document.createElement('option');
+                            option.value = chucVu.id;
+                            option.textContent = chucVu.tenChucVu;
+                            chucVuSelect.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading chuc vu:', error);
+                }
+            }
+
+            // Load data when page loads
+            document.addEventListener('DOMContentLoaded', function () {
+                loadLopHoc();
+                loadChucVu();
+            });
+
+            // Preview avatar image
+            document.getElementById('anhdaidien').addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const preview = document.getElementById('preview-avatar');
+                        preview.src = e.target.result;
+                        preview.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            async function openCreateModal() {
+                form.reset();
+                document.getElementById('nguoidung-id').value = '';
+                document.getElementById('preview-avatar').classList.add('hidden');
+                document.querySelector('.create-text').classList.remove('hidden');
+                document.querySelector('.update-text').classList.add('hidden');
+                document.querySelectorAll('.password-fields').forEach(field => field.classList.remove('hidden'));
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            async function openUpdateModal(id) {
+                try {
+                    const response = await fetch(`/NguoiDung/GetById/${id}`);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const user = result.data;
+                        document.getElementById('nguoidung-id').value = user.id;
+                        document.getElementById('hoten').value = user.hoTen;
+                        document.getElementById('masosinhvien').value = user.maSoSinhVien;
+                        document.getElementById('email').value = user.email;
+                        document.getElementById('sodienthoai').value = user.soDienThoai;
+                        document.getElementById('lophocid').value = user.lopHocId;
+                        document.getElementById('chucvuid').value = user.chucVuId;
+
+                        if (user.anhDaiDien) {
+                            const preview = document.getElementById('preview-avatar');
+                            preview.src = user.anhDaiDien;
+                            preview.classList.remove('hidden');
+                        }
+
+                        document.querySelector('.create-text').classList.add('hidden');
+                        document.querySelector('.update-text').classList.remove('hidden');
+                        document.querySelectorAll('.password-fields').forEach(field => field.classList.add('hidden'));
+
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi lấy thông tin người dùng');
+                }
+            }
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const avatarFile = formData.get('AnhDaiDienFile');
+                let avatarPath = null;
+
+                try {
+                    // Upload avatar if selected
+                    if (avatarFile && avatarFile.size > 0) {
+                        const avatarFormData = new FormData();
+                        avatarFormData.append('file', avatarFile);
+
+                        const uploadResponse = await fetch('/NguoiDung/UploadAvatar', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${tokenUser}`
+                            },
+                            body: avatarFormData
+                        });
+
+                        const uploadResult = await uploadResponse.json();
+                        if (uploadResult.success) {
+                            avatarPath = uploadResult.data;
+                        } else {
+                            throw new Error(uploadResult.message || 'Lỗi upload ảnh');
+                        }
+                    }
+
+                    // Create user data
+                    const createData = {
+                        maSoSinhVien: formData.get('masosinhvien'),
+                        email: formData.get('email'),
+                        matKhau: formData.get('matkhau'),
+                        hoTen: formData.get('hoten'),
+                        soDienThoai: formData.get('sodienthoai'),
+                        lopHocId: parseInt(formData.get('lophocid')),
+                        chucVuId: parseInt(formData.get('chucvuid')),
+                        anhDaiDien: avatarPath // Đường dẫn ảnh đã upload
+                    };
+
+                    // Validate password confirmation
+                    if (createData.matKhau !== formData.get('xacnhanmatkhau')) {
+                        alert('Mật khẩu xác nhận không khớp');
+                        return;
+                    }
+
+                    // Send create user request
+                    const response = await fetch('http://localhost:5032/api/NguoiDung', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${tokenUser}`,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(createData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        closeModal();
+                        location.reload();
+                    } else {
+                        // Log detailed error information
+                        console.error('API Error:', result);
+                        alert(result.message || 'Không thể tạo người dùng');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra: ' + error.message);
+                }
+            });
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                form.reset();
+            }
+
+            function deleteNguoiDung(id) {
+                deleteId = id;
+                deleteModal.classList.remove('hidden');
+                deleteModal.classList.add('flex');
+            }
+
+            function closeDeleteModal() {
+                deleteModal.classList.add('hidden');
+                deleteModal.classList.remove('flex');
+                deleteId = 0;
+            }
+
+            async function confirmDelete() {
+                try {
+                    const response = await fetch(`/NguoiDung/Delete/${deleteId}`, {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        closeDeleteModal();
+                        location.reload();
+                    } else {
+                        alert(result.message || 'Không thể xóa người dùng');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi xóa người dùng');
+                }
+            }
+        </script>
+    }

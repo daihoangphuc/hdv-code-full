@@ -1,0 +1,123 @@
+@using HTSV.FE.Models.Enums
+@using HTSV.FE.Extensions
+@model HTSV.FE.Models.HoatDong.HoatDongViewModel
+
+<div class="space-y-4">
+    <div>
+        <label for="tenHoatDong" class="block text-sm font-medium text-gray-700">Tên hoạt động</label>
+        <input type="text" name="tenHoatDong" id="tenHoatDong" value="@Model?.TenHoatDong"
+               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+               required maxlength="200">
+    </div>
+
+    <div>
+        <label for="moTa" class="block text-sm font-medium text-gray-700">Mô tả</label>
+        <textarea name="moTa" id="moTa" rows="3"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  maxlength="1000">@Model?.MoTa</textarea>
+    </div>
+
+    <div>
+        <label for="diaDiem" class="block text-sm font-medium text-gray-700">Địa điểm</label>
+        <input type="text" name="diaDiem" id="diaDiem" value="@Model?.DiaDiem"
+               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+               required maxlength="200">
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label for="thoiGianBatDau" class="block text-sm font-medium text-gray-700">Thời gian bắt đầu</label>
+            <input type="datetime-local" name="thoiGianBatDau" id="thoiGianBatDau" 
+                   value="@(Model?.ThoiGianBatDau.ToString("yyyy-MM-ddTHH:mm"))"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                   required>
+        </div>
+        <div>
+            <label for="thoiGianKetThuc" class="block text-sm font-medium text-gray-700">Thời gian kết thúc</label>
+            <input type="datetime-local" name="thoiGianKetThuc" id="thoiGianKetThuc" 
+                   value="@(Model?.ThoiGianKetThuc.ToString("yyyy-MM-ddTHH:mm"))"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                   required>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4">
+        <div>
+            <label for="soLuongToiDa" class="block text-sm font-medium text-gray-700">Số lượng tối đa</label>
+            <input type="number" name="soLuongToiDa" id="soLuongToiDa" value="@Model?.SoLuongToiDa"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                   required min="1">
+        </div>
+        <div>
+            <label for="hocKy" class="block text-sm font-medium text-gray-700">Học kỳ</label>
+            <select name="hocKy" id="hocKy" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" required>
+                <option value="1" selected="@(Model?.HocKy == 1)">Học kỳ 1</option>
+                <option value="2" selected="@(Model?.HocKy == 2)">Học kỳ 2</option>
+                <option value="3" selected="@(Model?.HocKy == 3)">Học kỳ 3</option>
+            </select>
+        </div>
+        <div>
+            <label for="namHoc" class="block text-sm font-medium text-gray-700">Năm học</label>
+            <input type="text" name="namHoc" id="namHoc" value="@Model?.NamHoc"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                   required pattern="\d{4}-\d{4}" placeholder="2023-2024">
+        </div>
+    </div>
+
+    <div>
+        <label for="toaDo" class="block text-sm font-medium text-gray-700">Tọa độ (Vĩ độ, Kinh độ)</label>
+        <input type="text" name="toaDo" id="toaDo" value="@Model?.ToaDo"
+               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+               pattern="^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$"
+               placeholder="Ví dụ: 10.362622, 106.382172"
+               title="Nhập tọa độ theo định dạng: Vĩ độ, Kinh độ (ví dụ: 10.362622, 106.382172)">
+        <p class="mt-1 text-sm text-gray-500">Vĩ độ từ -90 đến 90, Kinh độ từ -180 đến 180</p>
+    </div>
+
+    <div>
+        <label for="trangThai" class="block text-sm font-medium text-gray-700">Trạng thái</label>
+        @{
+            byte trangThai = Model?.TrangThai ?? 1;  // Mặc định là Sắp diễn ra
+        }
+        <select name="trangThai" id="trangThai"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+            <option value="1" selected="@(trangThai == 1)">@(((byte)1).GetTrangThaiText())</option>
+            <option value="2" selected="@(trangThai == 2)">@(((byte)2).GetTrangThaiText())</option>
+            <option value="3" selected="@(trangThai == 3)">@(((byte)3).GetTrangThaiText())</option>
+            <option value="4" selected="@(trangThai == 4)">@(((byte)4).GetTrangThaiText())</option>
+        </select>
+    </div>
+
+    <div class="flex items-center">
+        @{
+            var congKhai = Model?.CongKhai ?? false;
+        }
+        <input type="checkbox" name="congKhai" id="congKhai" checked="@congKhai"
+               class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+        <label for="congKhai" class="ml-2 block text-sm text-gray-900">Công khai hoạt động</label>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function validateToaDo(value) {
+            if (!value) return true; // Allow empty value
+            
+            const pattern = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+            if (!pattern.test(value)) return false;
+            
+            const [lat, lng] = value.split(',').map(x => parseFloat(x.trim()));
+            return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+        }
+
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const toaDo = this.querySelector('#toaDo').value;
+                if (!validateToaDo(toaDo)) {
+                    e.preventDefault();
+                    alert('Tọa độ không hợp lệ. Vui lòng nhập theo định dạng: Vĩ độ, Kinh độ (ví dụ: 10.362622, 106.382172)');
+                }
+            });
+        });
+    </script>
+} 

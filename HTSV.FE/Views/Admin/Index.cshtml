@@ -1,0 +1,205 @@
+@model HTSV.FE.Models.Admin.ThongKeViewModel
+@using HTSV.FE.Extensions
+@{
+    ViewData["Title"] = "Tổng quan";
+    Layout = "_AdminLayout";
+}
+
+<div class="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+    <!-- Tổng số hoạt động -->
+    <div class="flex items-center p-4 bg-white rounded-lg shadow-xs">
+        <div class="p-3 mr-4 text-orange-500 bg-orange-100 rounded-full">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+        </div>
+        <div>
+            <p class="mb-2 text-sm font-medium text-gray-600">
+                Tổng số hoạt động
+            </p>
+            <p class="text-lg font-semibold text-gray-700">
+                @Model.TongHoatDong
+            </p>
+        </div>
+    </div>
+    <!-- Hoạt động đang diễn ra -->
+    <div class="flex items-center p-4 bg-white rounded-lg shadow-xs">
+        <div class="p-3 mr-4 text-green-500 bg-green-100 rounded-full">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <div>
+            <p class="mb-2 text-sm font-medium text-gray-600">
+                Hoạt động đang diễn ra
+            </p>
+            <p class="text-lg font-semibold text-gray-700">
+                @Model.HoatDongDangDienRa
+            </p>
+        </div>
+    </div>
+    <!-- Tổng lượt đăng ký -->
+    <div class="flex items-center p-4 bg-white rounded-lg shadow-xs">
+        <div class="p-3 mr-4 text-blue-500 bg-blue-100 rounded-full">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+        </div>
+        <div>
+            <p class="mb-2 text-sm font-medium text-gray-600">
+                Tổng lượt đăng ký
+            </p>
+            <p class="text-lg font-semibold text-gray-700">
+                @Model.TongLuotDangKy
+            </p>
+        </div>
+    </div>
+    <!-- Tổng lượt tham gia -->
+    <div class="flex items-center p-4 bg-white rounded-lg shadow-xs">
+        <div class="p-3 mr-4 text-teal-500 bg-teal-100 rounded-full">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+        </div>
+        <div>
+            <p class="mb-2 text-sm font-medium text-gray-600">
+                Tổng lượt tham gia
+            </p>
+            <p class="text-lg font-semibold text-gray-700">
+                @Model.TongLuotThamGia
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Biểu đồ -->
+<div class="grid gap-6 mb-8 md:grid-cols-2">
+    <!-- Biểu đồ đường -->
+    <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs">
+        <h4 class="mb-4 font-semibold text-gray-800">
+            Thống kê theo tháng
+        </h4>
+        <canvas id="line"></canvas>
+        <div class="flex justify-center mt-4 space-x-3 text-sm text-gray-600">
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 mr-1 bg-teal-500 rounded-full"></span>
+                <span>Hoạt động</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 mr-1 bg-purple-600 rounded-full"></span>
+                <span>Đăng ký</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 mr-1 bg-blue-600 rounded-full"></span>
+                <span>Tham gia</span>
+            </div>
+        </div>
+    </div>
+    <!-- Biểu đồ tròn -->
+    <div class="min-w-0 p-4 bg-white rounded-lg shadow-xs">
+        <h4 class="mb-4 font-semibold text-gray-800">
+            Phân bố trạng thái
+        </h4>
+        <canvas id="pie"></canvas>
+        <div class="flex justify-center mt-4 space-x-3 text-sm text-gray-600">
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 mr-1 bg-blue-500 rounded-full"></span>
+                <span>Sắp diễn ra</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 mr-1 bg-green-500 rounded-full"></span>
+                <span>Đang diễn ra</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 mr-1 bg-gray-500 rounded-full"></span>
+                <span>Đã kết thúc</span>
+            </div>
+            <div class="flex items-center">
+                <span class="inline-block w-3 h-3 mr-1 bg-red-500 rounded-full"></span>
+                <span>Đã hủy</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Biểu đồ đường
+        var lineConfig = {
+            type: 'line',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.ThongKeTheoThang.Select(x => $"'Tháng {x.Thang}/{x.Nam}'")))],
+                datasets: [
+                    {
+                        label: 'Hoạt động',
+                        backgroundColor: '#0694a2',
+                        borderColor: '#0694a2',
+                        data: [@string.Join(",", Model.ThongKeTheoThang.Select(x => x.SoHoatDong))],
+                        fill: false,
+                    },
+                    {
+                        label: 'Đăng ký',
+                        fill: false,
+                        backgroundColor: '#7e3af2',
+                        borderColor: '#7e3af2',
+                        data: [@string.Join(",", Model.ThongKeTheoThang.Select(x => x.SoLuotDangKy))],
+                    },
+                    {
+                        label: 'Tham gia',
+                        fill: false,
+                        backgroundColor: '#3f83f8',
+                        borderColor: '#3f83f8',
+                        data: [@string.Join(",", Model.ThongKeTheoThang.Select(x => x.SoLuotThamGia))],
+                    }
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                },
+            },
+        };
+
+        // Biểu đồ tròn
+        var pieConfig = {
+            type: 'pie',
+            data: {
+                datasets: [
+                    {
+                        data: [@string.Join(",", Model.ThongKeTrangThai.Select(x => x.SoLuong))],
+                        backgroundColor: ['#3f83f8', '#0e9f6e', '#9ca3af', '#ef4444'],
+                        label: 'Trạng thái',
+                    },
+                ],
+                labels: [@Html.Raw(string.Join(",", Model.ThongKeTrangThai.Select(x => $"'{(byte.Parse(x.TrangThai.ToString())).GetTrangThaiText()}'")))]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            },
+        };
+
+        // Khởi tạo biểu đồ khi trang tải xong
+        window.addEventListener('load', function () {
+            var lineCtx = document.getElementById('line');
+            window.myLine = new Chart(lineCtx, lineConfig);
+
+            var pieCtx = document.getElementById('pie');
+            window.myPie = new Chart(pieCtx, pieConfig);
+        });
+    </script>
+} 

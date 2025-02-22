@@ -1,0 +1,358 @@
+@model HTSV.FE.Models.NguoiDung.NguoiDungViewModel
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userRole = Context.Session.GetString("Role");
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold mb-6">Thông tin cá nhân</h1>
+
+            <!-- Tabs -->
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button onclick="switchTab('thong-tin')" 
+                            class="tab-btn active border-primary text-primary px-1 py-4 text-sm font-medium border-b-2" 
+                            data-tab="thong-tin">
+                        Thông tin chung
+                    </button>
+                    <button onclick="switchTab('doi-mat-khau')" 
+                            class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-4 text-sm font-medium border-b-2" 
+                            data-tab="doi-mat-khau">
+                        Đổi mật khẩu
+                    </button>
+                    <button onclick="switchTab('hoat-dong')" 
+                            class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 px-1 py-4 text-sm font-medium border-b-2" 
+                            data-tab="hoat-dong">
+                        Hoạt động
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="mt-6">
+                <!-- Thông tin chung -->
+                <div id="thong-tin" class="tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Avatar Section -->
+                        <div class="text-center">
+                            <div class="relative inline-block">
+                                <img id="avatarPreview" src="@(string.IsNullOrEmpty(Model.AnhDaiDien) ? "/images/default-avatar.png" : Model.AnhDaiDien)" 
+                                     alt="Avatar" class="w-64 h-64 rounded-full object-cover border-4 border-blue-100">
+                                <label for="avatarUpload" class="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary-dark">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </label>
+                                <input type="file" id="avatarUpload" class="hidden" accept="image/*" onchange="handleAvatarChange()">
+                            </div>
+                            <button onclick="updateAvatar()" class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark">
+                                Cập nhật ảnh
+                            </button>
+                        </div>
+
+                        <!-- Info Section -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Mã sinh viên</label>
+                                <input type="text" value="@Model.MaSoSinhVien" class="w-full px-3 py-2 border rounded-md bg-gray-50" readonly>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" value="@Model.Email" class="w-full px-3 py-2 border rounded-md bg-gray-50" readonly>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Họ tên</label>
+                                <input type="text" id="hoTen" value="@Model.HoTen" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
+                                <input type="date" id="ngaySinh" value="@(Model.NgaySinh?.ToString("yyyy-MM-dd"))" class="w-full px-3 py-2 border rounded-md">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
+                                <select id="gioiTinh" class="w-full px-3 py-2 border rounded-md">
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Lớp</label>
+                                <input type="text" value="@Model.TenLop" class="w-full px-3 py-2 border rounded-md bg-gray-50" readonly>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Chức vụ</label>
+                                <input type="text" value="@Model.ChucVu" class="w-full px-3 py-2 border rounded-md bg-gray-50" readonly>
+                            </div>
+
+                            <button onclick="updateThongTin()" class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark">
+                                Cập nhật thông tin
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Đổi mật khẩu -->
+                <div id="doi-mat-khau" class="tab-content hidden">
+                    <div class="max-w-md mx-auto space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
+                            <input type="password" id="matKhauHienTai" class="w-full px-3 py-2 border rounded-md">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+                            <input type="password" id="matKhauMoi" class="w-full px-3 py-2 border rounded-md">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
+                            <input type="password" id="xacNhanMatKhau" class="w-full px-3 py-2 border rounded-md">
+                        </div>
+
+                        <button onclick="updateMatKhau()" class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark">
+                            Đổi mật khẩu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hoạt động -->
+                <div id="hoat-dong" class="tab-content hidden">
+                    <div class="space-y-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên hoạt động</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="hoatDongList">
+                                    <!-- Danh sách hoạt động sẽ được thêm vào đây bằng JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+    <script>
+        // Set giới tính mặc định
+        document.addEventListener('DOMContentLoaded', function() {
+            const gioiTinh = '@Model.GioiTinh';
+            if (gioiTinh) {
+                document.getElementById('gioiTinh').value = gioiTinh;
+            }
+        });
+
+        // Cấu hình toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+        }
+
+        // Xử lý chuyển tab
+        function switchTab(tabId) {
+            // Ẩn tất cả các tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Hiện tab content được chọn
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // Cập nhật trạng thái active của các nút tab
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-primary', 'text-primary');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Active tab được chọn
+            const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+            activeBtn.classList.add('border-primary', 'text-primary');
+
+            // Load dữ liệu cho tab nếu cần
+            if (tabId === 'hoat-dong') {
+                loadHoatDong();
+            }
+        }
+
+        // Xử lý cập nhật avatar
+        let selectedAvatar = null;
+
+        function handleAvatarChange() {
+            const fileInput = document.getElementById('avatarUpload');
+            const file = fileInput.files[0];
+            if (file) {
+                selectedAvatar = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarPreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function updateAvatar() {
+            if (!selectedAvatar) {
+                toastr.warning('Vui lòng chọn ảnh mới');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('avatar', selectedAvatar);
+
+            try {
+                const response = await fetch('/NguoiDung/UpdateAvatar', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    toastr.success('Cập nhật ảnh đại diện thành công');
+                    selectedAvatar = null;
+                } else {
+                    toastr.error(result.message || 'Không thể cập nhật ảnh đại diện');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                toastr.error('Đã xảy ra lỗi khi cập nhật ảnh đại diện');
+            }
+        }
+
+        // Xử lý cập nhật thông tin
+        async function updateThongTin() {
+            const data = {
+                hoTen: document.getElementById('hoTen').value,
+                ngaySinh: document.getElementById('ngaySinh').value,
+                gioiTinh: document.getElementById('gioiTinh').value
+            };
+
+            try {
+                const response = await fetch('/NguoiDung/UpdateProfile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    toastr.success('Cập nhật thông tin thành công');
+                } else {
+                    toastr.error(result.message || 'Không thể cập nhật thông tin');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                toastr.error('Đã xảy ra lỗi khi cập nhật thông tin');
+            }
+        }
+
+        // Xử lý đổi mật khẩu
+        async function updateMatKhau() {
+            const matKhauHienTai = document.getElementById('matKhauHienTai').value;
+            const matKhauMoi = document.getElementById('matKhauMoi').value;
+            const xacNhanMatKhau = document.getElementById('xacNhanMatKhau').value;
+
+            if (!matKhauHienTai || !matKhauMoi || !xacNhanMatKhau) {
+                toastr.warning('Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+
+            if (matKhauMoi !== xacNhanMatKhau) {
+                toastr.warning('Mật khẩu mới và xác nhận mật khẩu không khớp');
+                return;
+            }
+
+            const data = {
+                matKhauHienTai,
+                matKhauMoi,
+                xacNhanMatKhau
+            };
+
+            try {
+                const response = await fetch('/NguoiDung/UpdatePassword', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    toastr.success('Đổi mật khẩu thành công');
+                    document.getElementById('matKhauHienTai').value = '';
+                    document.getElementById('matKhauMoi').value = '';
+                    document.getElementById('xacNhanMatKhau').value = '';
+                } else {
+                    toastr.error(result.message || 'Không thể đổi mật khẩu');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                toastr.error('Đã xảy ra lỗi khi đổi mật khẩu');
+            }
+        }
+
+        // Xử lý load danh sách hoạt động
+        async function loadHoatDong() {
+            try {
+                const response = await fetch('/ThamGia');
+                const data = await response.json();
+
+                const tbody = document.getElementById('hoatDongList');
+                tbody.innerHTML = '';
+
+                if (data.success && data.data) {
+                    data.data.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">${item.tenHoatDong}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${new Date(item.thoiGianDiemDanh).toLocaleString()}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    ${item.trangThai === 1 ? 'bg-green-100 text-green-800' : 
+                                      item.trangThai === 2 ? 'bg-red-100 text-red-800' : 
+                                      'bg-yellow-100 text-yellow-800'}">
+                                    ${item.trangThai === 1 ? 'Đã điểm danh' : 
+                                      item.trangThai === 2 ? 'Vắng mặt' : 'Chưa điểm danh'}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="/HoatDong/Details/${item.hoatDongId}" class="text-primary hover:text-primary-dark">
+                                    Chi tiết
+                                </a>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                toastr.error('Đã xảy ra lỗi khi tải danh sách hoạt động');
+            }
+        }
+    </script>
+} 

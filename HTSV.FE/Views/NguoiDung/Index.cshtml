@@ -1,0 +1,842 @@
+@using HTSV.FE.Models.Common
+@using HTSV.FE.Models.Auth
+@using HTSV.FE.Extensions
+@model PaginatedList<HTSV.FE.Models.NguoiDung.NguoiDungViewModel>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    string userRole = Context.Session.GetString("Role") ?? "Member";
+    if (User.IsInRole("Admin") || userRole == "Admin")
+    {
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+    
+    var loginInfo = Context.Session.Get<LoginResponseModel>("LoginResponse");
+    var isAdmin = loginInfo?.ThongTinNguoiDung?.DanhSachQuyen?.Contains("Admin") ?? false;
+}
+
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
+    <div class="mb-1 w-full">
+        <div class="mb-4">
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Danh sách người dùng</h1>
+        </div>
+        <div class="sm:flex">
+            <div class="flex items-center gap-2">
+                @if (isAdmin)
+                {
+                    <a href="@Url.Action("Create")" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/90">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+                        </svg>
+                        Thêm người dùng
+                    </a>
+                }
+            </div>
+            <div class="flex items-center ml-auto space-x-2 sm:space-x-3">
+                <form class="sm:pr-3" action="" method="get">
+                    <label for="search" class="sr-only">Search</label>
+                    <div class="relative w-48 mt-1 sm:w-64 xl:w-96">
+                        <input type="text" name="searchTerm" id="search" value="@Context.Request.Query["searchTerm"]" 
+                            class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
+                            placeholder="Tìm kiếm người dùng">
+                        <button type="submit" class="absolute top-0 right-0 p-2.5 text-sm font-medium text-white bg-primary rounded-r-lg border border-primary hover:bg-primary/90">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (TempData["InfoMessage"] != null)
+{
+    <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50" role="alert">
+        @TempData["InfoMessage"]
+    </div>
+}
+
+<div class="flex flex-col">
+    <div class="overflow-x-auto">
+        <div class="inline-block min-w-full align-middle">
+            <div class="overflow-hidden shadow">
+                <table class="min-w-full divide-y divide-gray-200 table-fixed">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Ảnh đại diện
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Họ tên
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                MSSV
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Email
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Lớp
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Chức vụ
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Trạng thái
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Thao tác
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @if (Model?.Items != null && Model.Items.Any())
+                        {
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr class="hover:bg-gray-100">
+                                    <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <img class="w-10 h-10 rounded-full" src="@(string.IsNullOrEmpty(item.AnhDaiDien) ? "/images/avatar/default.png" : item.AnhDaiDien)" alt="@item.HoTen">
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                        @item.HoTen
+                                    </td>
+                                    <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
+                                        @item.MaSoSinhVien
+                                    </td>
+                                    <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
+                                        @item.Email
+                                    </td>
+                                    <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
+                                        @item.TenLop
+                                    </td>
+                                    <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
+                                        @item.TenChucVu
+                                    </td>
+                                    <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
+                                        @if (item.TrangThai)
+                                        {
+                                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Khóa</span>
+                                        }
+                                    </td>
+                                    <td class="p-4 space-x-2 whitespace-nowrap">
+                                        @if (isAdmin)
+                                        {
+                                            <a href="@Url.Action("Edit", new { id = item.Id })" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">
+                                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                                                    <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                                                </svg>
+                                                Sửa
+                                            </a>
+                                            <button type="button" onclick="openChangePasswordModal(@item.Id)" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-yellow-600 rounded-lg hover:bg-yellow-700">
+                                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Đổi mật khẩu
+                                            </button>
+                                            <button type="button" onclick="updateTrangThai(@item.Id, @(item.TrangThai ? "false" : "true"))" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white @(item.TrangThai ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700") rounded-lg">
+                                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"/>
+                                                </svg>
+                                                @(item.TrangThai ? "Vô hiệu hóa" : "Kích hoạt")
+                                            </button>
+                                            <button type="button" onclick="deleteNguoiDung(@item.Id)" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-600 rounded-lg hover:bg-red-800">
+                                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Xóa
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="p-4 text-center text-gray-500">
+                                    Không có dữ liệu người dùng
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model?.TotalPages > 1)
+{
+    <div class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between">
+        <div class="flex items-center mb-4 sm:mb-0">
+            <span class="text-sm font-normal text-gray-500">
+                Trang <span class="font-semibold text-gray-900">@Model.PageIndex</span> / <span class="font-semibold text-gray-900">@Model.TotalPages</span>
+            </span>
+        </div>
+        <div class="flex items-center space-x-3">
+            @if (Model.HasPreviousPage)
+            {
+                <a href="?page=@(Model.PageIndex - 1)&searchTerm=@Context.Request.Query["searchTerm"]"
+                    class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/90">
+                    <svg class="w-5 h-5 mr-1 -ml-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Trang trước
+                </a>
+            }
+            @if (Model.HasNextPage)
+            {
+                <a href="?page=@(Model.PageIndex + 1)&searchTerm=@Context.Request.Query["searchTerm"]"
+                    class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary/90">
+                    Trang sau
+                    <svg class="w-5 h-5 ml-1 -mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+            }
+        </div>
+    </div>
+}
+
+<!-- Main modal -->
+<div id="crud-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                <h3 class="text-lg font-semibold text-gray-900" id="modal-title">
+                    Thêm người dùng
+                </h3>
+                <button type="button" onclick="closeModal()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Đóng modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <form id="crud-form" class="p-4 md:p-5">
+                <input type="hidden" id="nguoidung-id" value="0" />
+                <div class="grid gap-4 mb-4 grid-cols-2">
+                    <div class="col-span-2">
+                        <label for="hoten" class="block mb-2 text-sm font-medium text-gray-900">Họ tên</label>
+                        <input type="text" id="hoten" name="HoTen" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label for="masosinhvien" class="block mb-2 text-sm font-medium text-gray-900">MSSV</label>
+                        <input type="text" id="masosinhvien" name="MaSoSinhVien" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label for="email" class="block mb-2 text-sm font-medium text-gray-900">Email</label>
+                        <input type="email" id="email" name="Email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label for="sodienthoai" class="block mb-2 text-sm font-medium text-gray-900">Số điện thoại</label>
+                        <input type="tel" id="sodienthoai" name="SoDienThoai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label for="lophocid" class="block mb-2 text-sm font-medium text-gray-900">Lớp</label>
+                        <select id="lophocid" name="LopHocId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                            <option value="">Chọn lớp</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label for="chucvuid" class="block mb-2 text-sm font-medium text-gray-900">Chức vụ</label>
+                        <select id="chucvuid" name="ChucVuId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                            <option value="">Chọn chức vụ</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2 password-fields">
+                        <label for="matkhau" class="block mb-2 text-sm font-medium text-gray-900">Mật khẩu</label>
+                        <input type="password" id="matkhau" name="MatKhau" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                    </div>
+                    <div class="col-span-2 password-fields">
+                        <label for="xacnhanmatkhau" class="block mb-2 text-sm font-medium text-gray-900">Xác nhận mật khẩu</label>
+                        <input type="password" id="xacnhanmatkhau" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                    </div>
+                    <div class="col-span-2">
+                        <label for="anhdaidienfile" class="block mb-2 text-sm font-medium text-gray-900">Ảnh đại diện</label>
+                        <input type="file" id="anhdaidienfile" name="AnhDaiDienFile" accept="image/*" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
+                        <img id="preview-avatar" src="" alt="Preview" class="hidden mt-2 w-20 h-20 rounded-full object-cover">
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button type="submit" class="text-white inline-flex items-center bg-primary hover:bg-primary/90 focus:ring-4 focus:outline-none focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        <span id="submit-button-text">Thêm người dùng</span>
+                    </button>
+                    <button type="button" onclick="closeModal()" class="text-red-600 inline-flex items-center hover:text-white border border-red-600 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete modal -->
+<div id="delete-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow">
+            <button type="button" onclick="closeDeleteModal()" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Đóng modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500">Bạn có chắc chắn muốn xóa người dùng này không?</h3>
+                <button type="button" onclick="confirmDelete()" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Xác nhận
+                </button>
+                <button type="button" onclick="closeDeleteModal()" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+                    Hủy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="change-password-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow">
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    Đổi mật khẩu
+                </h3>
+                <button type="button" onclick="closeChangePasswordModal()" class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Đóng</span>
+                </button>
+            </div>
+            <form id="change-password-form" class="p-4 md:p-5">
+                <input type="hidden" id="userId" name="userId" value="" />
+                <div class="mb-4">
+                    <label for="currentPassword" class="block mb-2 text-sm font-medium text-gray-900">Mật khẩu hiện tại</label>
+                    <input type="password" id="currentPassword" name="currentPassword" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                </div>
+                <div class="mb-4">
+                    <label for="newPassword" class="block mb-2 text-sm font-medium text-gray-900">Mật khẩu mới</label>
+                    <input type="password" id="newPassword" name="newPassword" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                </div>
+                <div class="mb-4">
+                    <label for="confirmPassword" class="block mb-2 text-sm font-medium text-gray-900">Xác nhận mật khẩu</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                </div>
+                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                    Lưu thay đổi
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let deleteId = 0;
+        let currentAvatar = '';
+        const modal = document.getElementById('crud-modal');
+        const deleteModal = document.getElementById('delete-modal');
+        const form = document.getElementById('crud-form');
+        const lophocSelect = document.getElementById('lophocid');
+        const chucvuSelect = document.getElementById('chucvuid');
+        const imageInput = document.getElementById('anhdaidienfile');
+        const previewImage = document.getElementById('preview-avatar');
+
+        // Load danh sách lớp học khi trang được tải
+        async function loadLopHoc() {
+            try {
+                const response = await fetch('/LopHoc/GetAll', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    lophocSelect.innerHTML = '<option value="">Chọn lớp</option>';
+                    result.data.forEach(lop => {
+                        const option = document.createElement('option');
+                        option.value = lop.id;
+                        option.textContent = lop.tenLop;
+                        lophocSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading lop hoc:', error);
+            }
+        }
+
+        // Load danh sách chức vụ khi trang được tải
+        async function loadChucVu() {
+            try {
+                const response = await fetch('/ChucVu/GetAll', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    chucvuSelect.innerHTML = '<option value="">Chọn chức vụ</option>';
+                    result.data.forEach(chucvu => {
+                        const option = document.createElement('option');
+                        option.value = chucvu.id;
+                        option.textContent = chucvu.tenChucVu;
+                        chucvuSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading chuc vu:', error);
+            }
+        }
+
+        // Load dữ liệu khi trang được tải
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLopHoc();
+            loadChucVu();
+        });
+
+        // Preview ảnh khi chọn file
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Upload ảnh đại diện
+        async function uploadAvatar(file) {
+            if (!file) return null;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/NguoiDung/UploadAvatar', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    return result.data;
+                }
+                throw new Error(result.message || 'Upload failed');
+            } catch (error) {
+                console.error('Error uploading avatar:', error);
+                alert('Không thể upload ảnh đại diện: ' + error.message);
+                return null;
+            }
+        }
+
+        // Mở modal thêm mới
+        function openCreateModal() {
+            document.getElementById('modal-title').textContent = 'Thêm người dùng';
+            document.getElementById('submit-button-text').textContent = 'Thêm người dùng';
+            document.getElementById('nguoidung-id').value = '0';
+            form.reset();
+            previewImage.src = '';
+            previewImage.classList.add('hidden');
+            document.querySelectorAll('.password-fields').forEach(field => field.style.display = 'block');
+            currentAvatar = '';
+            
+            const modalEl = document.getElementById('crud-modal');
+            const modal = new Modal(modalEl);
+            modal.show();
+        }
+
+        // Mở modal chỉnh sửa
+        async function openEditModal(id) {
+            document.getElementById('modal-title').textContent = 'Cập nhật người dùng';
+            document.getElementById('submit-button-text').textContent = 'Cập nhật';
+            document.getElementById('nguoidung-id').value = id;
+            document.querySelectorAll('.password-fields').forEach(field => field.style.display = 'none');
+            
+            try {
+                const response = await fetch(`/NguoiDung/GetById/${id}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    const data = result.data;
+                    document.getElementById('hoten').value = data.hoTen;
+                    document.getElementById('masosinhvien').value = data.maSoSinhVien;
+                    document.getElementById('email').value = data.email;
+                    document.getElementById('sodienthoai').value = data.soDienThoai;
+                    document.getElementById('lophocid').value = data.lopHocId;
+                    document.getElementById('chucvuid').value = data.chucVuId;
+                    
+                    if (data.anhDaiDien) {
+                        currentAvatar = data.anhDaiDien;
+                        previewImage.src = data.anhDaiDien;
+                        previewImage.classList.remove('hidden');
+                    } else {
+                        previewImage.src = '';
+                        previewImage.classList.add('hidden');
+                    }
+                } else {
+                    throw new Error(result.message || 'Không thể lấy thông tin người dùng');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Không thể lấy thông tin người dùng: ' + error.message);
+                return;
+            }
+
+            const modalEl = document.getElementById('crud-modal');
+            const modal = new Modal(modalEl);
+            modal.show();
+        }
+
+        // Đóng modal
+        function closeModal() {
+            const modalEl = document.getElementById('crud-modal');
+            const modal = new Modal(modalEl);
+            modal.hide();
+            form.reset();
+            previewImage.src = '';
+            previewImage.classList.add('hidden');
+            currentAvatar = '';
+        }
+
+        // Xử lý submit form
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('nguoidung-id').value;
+            const isEdit = id !== '0';
+            
+            // Validate required fields
+            const requiredFields = ['hoten', 'masosinhvien', 'email', 'sodienthoai', 'lophocid', 'chucvuid'];
+            if (!isEdit) {
+                requiredFields.push('matkhau', 'xacnhanmatkhau');
+            }
+
+            for (const field of requiredFields) {
+                const value = document.getElementById(field).value;
+                if (!value) {
+                    alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+                    return;
+                }
+            }
+
+            // Validate password match for new user
+            if (!isEdit) {
+                const matKhau = document.getElementById('matkhau').value;
+                const xacNhanMatKhau = document.getElementById('xacnhanmatkhau').value;
+                if (matKhau !== xacNhanMatKhau) {
+                    alert('Mật khẩu và xác nhận mật khẩu không khớp');
+                    return;
+                }
+            }
+
+            let avatarPath = null;
+            if (imageInput.files.length > 0) {
+                avatarPath = await uploadAvatar(imageInput.files[0]);
+                if (!avatarPath) {
+                    return;
+                }
+            }
+
+            if (!isEdit) {
+                // Create new user
+                const data = {
+                    maSoSinhVien: document.getElementById('masosinhvien').value,
+                    email: document.getElementById('email').value,
+                    matKhau: document.getElementById('matkhau').value,
+                    hoTen: document.getElementById('hoten').value,
+                    soDienThoai: document.getElementById('sodienthoai').value,
+                    lopHocId: parseInt(document.getElementById('lophocid').value),
+                    chucVuId: parseInt(document.getElementById('chucvuid').value),
+                    anhDaiDien: avatarPath || null
+                };
+
+                try {
+                    const response = await fetch('/NguoiDung/Create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const result = await response.json();
+                    if (result.success) {
+                        closeModal();
+                        window.location.reload();
+                    } else {
+                        throw new Error(result.message || 'Có lỗi xảy ra');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Không thể tạo người dùng: ' + error.message);
+                }
+            } else {
+                // Update existing user
+                const data = {
+                    hoTen: document.getElementById('hoten').value,
+                    soDienThoai: document.getElementById('sodienthoai').value,
+                    lopHocId: parseInt(document.getElementById('lophocid').value),
+                    chucVuId: parseInt(document.getElementById('chucvuid').value),
+                    anhDaiDien: avatarPath || currentAvatar || null,
+                    trangThai: true // Giữ nguyên trạng thái hoạt động
+                };
+
+                try {
+                    const response = await fetch(`/NguoiDung/Update/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        closeModal();
+                        window.location.reload();
+                    } else {
+                        throw new Error(result.message || 'Có lỗi xảy ra khi cập nhật');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Không thể cập nhật người dùng: ' + error.message);
+                }
+            }
+        });
+
+        // Mở modal xóa
+        function deleteNguoiDung(id) {
+            deleteId = id;
+            const modalEl = document.getElementById('delete-modal');
+            const modal = new Modal(modalEl);
+            modal.show();
+        }
+
+        // Đóng modal xóa
+        function closeDeleteModal() {
+            const modalEl = document.getElementById('delete-modal');
+            const modal = new Modal(modalEl);
+            modal.hide();
+            deleteId = 0;
+        }
+
+        // Xác nhận xóa
+        async function confirmDelete() {
+            if (!deleteId) return;
+
+            try {
+                const response = await fetch(`/NguoiDung/Delete/${deleteId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    closeDeleteModal();
+                    window.location.reload();
+                } else {
+                    throw new Error(result.message || 'Có lỗi xảy ra khi xóa');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Không thể xóa người dùng: ' + error.message);
+            }
+        }
+
+        // Change Password Modal
+        let changePasswordId = 0;
+        const changePasswordModal = document.getElementById('change-password-modal');
+        const changePasswordForm = document.getElementById('change-password-form');
+
+        function openChangePasswordModal(userId) {
+            changePasswordId = userId;
+            document.getElementById('userId').value = userId;
+            const modalEl = document.getElementById('change-password-modal');
+            const modal = new Modal(modalEl);
+            modal.show();
+        }
+
+        function closeChangePasswordModal() {
+            const modalEl = document.getElementById('change-password-modal');
+            const modal = new Modal(modalEl);
+            modal.hide();
+            changePasswordForm.reset();
+            changePasswordId = 0;
+        }
+
+        changePasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            console.log('Form submitted with userId:', userId);
+
+            if (newPassword !== confirmPassword) {
+                alert('Mật khẩu xác nhận không khớp');
+                return;
+            }
+
+            try {
+                const token = '@Context.Session.GetString("TokenUser")';
+                console.log('=== ĐỔI MẬT KHẨU - REQUEST ===');
+                const url = `http://localhost:5032/api/NguoiDung/${userId}/mat-khau`;
+                console.log('URL:', url);
+                console.log('Method:', 'PUT');
+                console.log('Headers:', {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                });
+
+                const requestData = {
+                    matKhauCu: currentPassword,
+                    matKhauMoi: newPassword,
+                    xacNhanMatKhau: confirmPassword
+                };
+                console.log('Body:', JSON.stringify(requestData, null, 2));
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                console.log('\n=== ĐỔI MẬT KHẨU - RESPONSE ===');
+                console.log('Status:', response.status);
+                console.log('Status Text:', response.statusText);
+                console.log('Headers:', Object.fromEntries(response.headers.entries()));
+
+                const result = await response.json();
+                console.log('Body:', JSON.stringify(result, null, 2));
+                
+                if (result.success) {
+                    alert(result.message || 'Đổi mật khẩu thành công');
+                    closeChangePasswordModal();
+                } else {
+                    alert(result.message || result.error || 'Không thể đổi mật khẩu');
+                }
+            } catch (error) {
+                console.log('\n=== ĐỔI MẬT KHẨU - ERROR ===');
+                console.error('Name:', error.name);
+                console.error('Message:', error.message);
+                console.error('Stack:', error.stack);
+                alert('Đã xảy ra lỗi khi đổi mật khẩu');
+            }
+        });
+
+        // Update Trang Thai
+        async function updateTrangThai(userId, newStatus) {
+            if (!confirm('Bạn có chắc chắn muốn thay đổi trạng thái người dùng này?')) {
+                return;
+            }
+
+            console.log('updateTrangThai called with userId:', userId, 'newStatus:', newStatus);
+
+            try {
+                const token = '@Context.Session.GetString("TokenUser")';
+                console.log('=== CẬP NHẬT TRẠNG THÁI - REQUEST ===');
+                const url = `http://localhost:5032/api/NguoiDung/${userId}/trang-thai`;
+                console.log('URL:', url);
+                console.log('Method:', 'PUT');
+                console.log('Headers:', {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                });
+                console.log('Body:', JSON.stringify(newStatus, null, 2));
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(newStatus)
+                });
+
+                console.log('\n=== CẬP NHẬT TRẠNG THÁI - RESPONSE ===');
+                console.log('Status:', response.status);
+                console.log('Status Text:', response.statusText);
+                console.log('Headers:', Object.fromEntries(response.headers.entries()));
+
+                const result = await response.json();
+                console.log('Body:', JSON.stringify(result, null, 2));
+                
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert(result.message || result.error || 'Không thể cập nhật trạng thái người dùng');
+                }
+            } catch (error) {
+                console.log('\n=== CẬP NHẬT TRẠNG THÁI - ERROR ===');
+                console.error('Name:', error.name);
+                console.error('Message:', error.message);
+                console.error('Stack:', error.stack);
+                alert('Đã xảy ra lỗi khi cập nhật trạng thái');
+            }
+        }
+    </script>
+} 

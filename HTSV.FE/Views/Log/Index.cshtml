@@ -1,0 +1,337 @@
+@using HTSV.FE.Models.Common
+@model PaginatedList<HTSV.FE.Models.Log.LogViewModel>
+@{
+    ViewData["Title"] = "Lịch sử hoạt động";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
+    <div class="mb-1 w-full">
+        <div class="mb-4">
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Lịch sử hoạt động</h1>
+        </div>
+        <div class="sm:flex">
+            <div class="flex items-center gap-2">
+                @if (isAdmin)
+                {
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                </svg>
+                            </div>
+                            <input type="text" id="maSinhVien" class="block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-60 bg-gray-50 focus:ring-primary focus:border-primary" placeholder="Nhập mã sinh viên...">
+                        </div>
+                        <button type="button" onclick="searchByMSSV()" class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5">
+                            Tìm theo MSSV
+                        </button>
+                    </div>
+                   @*  <div class="flex items-center gap-2 ml-4">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v10h10V5H5zm0 3h10M8 5v10m4-10v10"/>
+                                </svg>
+                            </div>
+                            <input type="date" id="tuNgay" class="block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-40 bg-gray-50 focus:ring-primary focus:border-primary">
+                        </div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v10h10V5H5zm0 3h10M8 5v10m4-10v10"/>
+                                </svg>
+                            </div>
+                            <input type="date" id="denNgay" class="block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-40 bg-gray-50 focus:ring-primary focus:border-primary">
+                        </div>
+                        <button type="button" onclick="searchByDateRange()" class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5">
+                            Tìm theo ngày
+                        </button>
+                    </div> *@
+                }
+            </div>
+            <div class="flex items-center ml-auto space-x-2 sm:space-x-3">
+                <form method="get" class="flex gap-2" id="searchForm">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                            </svg>
+                        </div>
+                        <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]"
+                               class="block p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-primary focus:border-primary"
+                               placeholder="Tìm kiếm lịch sử hoạt động">
+                        <input type="hidden" name="page" value="1" />
+                        <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                    </div>
+                    <button type="submit" class="text-white bg-primary hover:bg-primary/90 focus:ring-4 focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5">
+                        Tìm kiếm
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="flex flex-col">
+    <div class="overflow-x-auto">
+        <div class="inline-block min-w-full align-middle">
+            <div class="overflow-hidden shadow">
+                <table class="min-w-full divide-y divide-gray-200 table-fixed">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">STT</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">IP</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Người dùng</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Hành động</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Thời gian</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Kết quả</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Mô tả</th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @{
+                            var stt = (Model.PageIndex - 1) * Model.PageSize;
+                        }
+                        @foreach (var item in Model.Items)
+                        {
+                            stt++;
+                            <tr class="hover:bg-gray-100">
+                                <td class="p-4 text-base font-medium text-gray-900">@stt</td>
+                                <td class="p-4 text-base font-medium text-gray-900">@item.IP</td>
+                                <td class="p-4 text-base font-medium text-gray-900">@item.TenNguoiDung</td>
+                                <td class="p-4 text-base font-medium text-gray-900">@item.HanhDong</td>
+                                <td class="p-4 text-base font-medium text-gray-900">@item.ThoiGian.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td class="p-4 text-base font-medium text-gray-900">@item.KetQua</td>
+                                <td class="p-4 text-base font-medium text-gray-900">@item.MoTa</td>
+                                <td class="p-4 text-base font-medium text-gray-900 max-w-xs truncate" title="@item.GhiChu">@item.GhiChu</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between">
+        <div class="flex items-center mb-4 sm:mb-0">
+            <a href="@Url.Action("Index", new { page = Model.PageIndex - 1, pageSize = Model.PageSize, searchTerm = Context.Request.Query["searchTerm"] })"
+               class="@(Model.HasPreviousPage ? "" : "pointer-events-none opacity-50") inline-flex justify-center p-1 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100">
+                <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </a>
+            <span class="text-sm font-normal text-gray-500">
+                Hiển thị <span class="font-semibold text-gray-900">@(((Model.PageIndex - 1) * Model.PageSize) + 1)-@(((Model.PageIndex - 1) * Model.PageSize) + Model.Items.Count)</span>
+                trong <span class="font-semibold text-gray-900">@Model.TotalCount</span>
+            </span>
+            <a href="@Url.Action("Index", new { page = Model.PageIndex + 1, pageSize = Model.PageSize, searchTerm = Context.Request.Query["searchTerm"] })"
+               class="@(Model.HasNextPage ? "" : "pointer-events-none opacity-50") inline-flex justify-center p-1 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100">
+                <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </a>
+        </div>
+        <div class="flex items-center space-x-3">
+            @{
+                const int maxPagesBeforeEllipsis = 3;
+                const int maxPagesAfterEllipsis = 2;
+                var showStartEllipsis = Model.PageIndex > maxPagesBeforeEllipsis + 1;
+                var showEndEllipsis = Model.PageIndex < Model.TotalPages - maxPagesAfterEllipsis;
+
+                // Always show first page
+                <a href="@Url.Action("Index", new { page = 1, pageSize = Model.PageSize, searchTerm = Context.Request.Query["searchTerm"] })"
+                   class="inline-flex items-center justify-center w-8 h-8 text-sm font-semibold @(1 == Model.PageIndex ? "bg-primary text-white" : "text-gray-900 hover:bg-gray-100") rounded-lg focus:outline-none">
+                    1
+                </a>
+
+                if (showStartEllipsis)
+                {
+                    <span class="text-gray-500">...</span>
+                }
+
+                // Show pages around current page
+                for (var i = Math.Max(2, Model.PageIndex - maxPagesBeforeEllipsis + 1); i <= Math.Min(Model.TotalPages - 1, Model.PageIndex + maxPagesBeforeEllipsis - 1); i++)
+                {
+                    <a href="@Url.Action("Index", new { page = i, pageSize = Model.PageSize, searchTerm = Context.Request.Query["searchTerm"] })"
+                       class="inline-flex items-center justify-center w-8 h-8 text-sm font-semibold @(i == Model.PageIndex ? "bg-primary text-white" : "text-gray-900 hover:bg-gray-100") rounded-lg focus:outline-none">
+                        @i
+                    </a>
+                }
+
+                if (showEndEllipsis)
+                {
+                    <span class="text-gray-500">...</span>
+                }
+
+                // Always show last page if not first page
+                if (Model.TotalPages > 1)
+                {
+                    <a href="@Url.Action("Index", new { page = Model.TotalPages, pageSize = Model.PageSize, searchTerm = Context.Request.Query["searchTerm"] })"
+                       class="inline-flex items-center justify-center w-8 h-8 text-sm font-semibold @(Model.TotalPages == Model.PageIndex ? "bg-primary text-white" : "text-gray-900 hover:bg-gray-100") rounded-lg focus:outline-none">
+                        @Model.TotalPages
+                    </a>
+                }
+            }
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        async function searchByMSSV(page = 1) {
+            const maSinhVien = document.getElementById('maSinhVien').value;
+            if (!maSinhVien) {
+                alert('Vui lòng nhập mã sinh viên');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Log/GetByUserMSSV?maSinhVien=${encodeURIComponent(maSinhVien)}&page=${page}&pageSize=5`);
+                const result = await response.json();
+
+                if (result.success) {
+                    updateTableAndPagination(result.data);
+                } else {
+                    alert(result.message || 'Có lỗi xảy ra');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi khi tìm kiếm');
+            }
+        }
+
+        async function searchByDateRange(page = 1) {
+            const tuNgay = document.getElementById('tuNgay').value;
+            const denNgay = document.getElementById('denNgay').value;
+
+            if (!tuNgay || !denNgay) {
+                alert('Vui lòng chọn đầy đủ khoảng thời gian');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Log/GetByDateRange?tuNgay=${encodeURIComponent(tuNgay)}&denNgay=${encodeURIComponent(denNgay)}&page=${page}&pageSize=5`);
+                const result = await response.json();
+
+                if (result.success) {
+                    updateTableAndPagination(result.data);
+                } else {
+                    alert(result.message || 'Có lỗi xảy ra');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi khi tìm kiếm');
+            }
+        }
+
+        function updateTableAndPagination(data) {
+            // Update table body
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            data.items.forEach((item, index) => {
+                const startIndex = (data.pageIndex - 1) * data.pageSize;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-100">
+                        <td class="p-4 text-base font-medium text-gray-900">${startIndex + index + 1}</td>
+                        <td class="p-4 text-base font-medium text-gray-900">${item.ip || ''}</td>
+                        <td class="p-4 text-base font-medium text-gray-900">${item.tenNguoiDung || ''}</td>
+                        <td class="p-4 text-base font-medium text-gray-900">${item.hanhDong || ''}</td>
+                        <td class="p-4 text-base font-medium text-gray-900">${new Date(item.thoiGian).toLocaleString()}</td>
+                        <td class="p-4 text-base font-medium text-gray-900">${item.ketQua || ''}</td>
+                        <td class="p-4 text-base font-medium text-gray-900">${item.moTa || ''}</td>
+                        <td class="p-4 text-base font-medium text-gray-900 max-w-xs truncate" title="${item.ghiChu || ''}">${item.ghiChu || ''}</td>
+                    </tr>
+                `;
+            });
+
+            // Update pagination
+            const paginationContainer = document.querySelector('.sticky.bottom-0');
+            if (data.totalPages > 1) {
+                const maxPagesBeforeEllipsis = 3;
+                const maxPagesAfterEllipsis = 2;
+                const showStartEllipsis = data.pageIndex > maxPagesBeforeEllipsis + 1;
+                const showEndEllipsis = data.pageIndex < data.totalPages - maxPagesAfterEllipsis;
+
+                let paginationHtml = `
+                    <div class="flex items-center mb-4 sm:mb-0">
+                        <a href="javascript:void(0)" onclick="searchByCurrentMethod(${data.pageIndex - 1})" 
+                           class="${!data.hasPreviousPage ? 'pointer-events-none opacity-50' : ''} inline-flex justify-center p-1 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </a>
+                        <span class="text-sm font-normal text-gray-500">
+                            Hiển thị <span class="font-semibold text-gray-900">${((data.pageIndex - 1) * data.pageSize) + 1}-${((data.pageIndex - 1) * data.pageSize) + data.items.length}</span>
+                            trong <span class="font-semibold text-gray-900">${data.totalCount}</span>
+                        </span>
+                        <a href="javascript:void(0)" onclick="searchByCurrentMethod(${data.pageIndex + 1})"
+                           class="${!data.hasNextPage ? 'pointer-events-none opacity-50' : ''} inline-flex justify-center p-1 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-3">`;
+
+                // First page
+                paginationHtml += `
+                    <a href="javascript:void(0)" onclick="searchByCurrentMethod(1)"
+                       class="inline-flex items-center justify-center w-8 h-8 text-sm font-semibold ${1 === data.pageIndex ? 'bg-primary text-white' : 'text-gray-900 hover:bg-gray-100'} rounded-lg focus:outline-none">
+                        1
+                    </a>`;
+
+                if (showStartEllipsis) {
+                    paginationHtml += '<span class="text-gray-500">...</span>';
+                }
+
+                // Middle pages
+                for (let i = Math.max(2, data.pageIndex - maxPagesBeforeEllipsis + 1); 
+                     i <= Math.min(data.totalPages - 1, data.pageIndex + maxPagesBeforeEllipsis - 1); i++) {
+                    paginationHtml += `
+                        <a href="javascript:void(0)" onclick="searchByCurrentMethod(${i})"
+                           class="inline-flex items-center justify-center w-8 h-8 text-sm font-semibold ${i === data.pageIndex ? 'bg-primary text-white' : 'text-gray-900 hover:bg-gray-100'} rounded-lg focus:outline-none">
+                            ${i}
+                        </a>`;
+                }
+
+                if (showEndEllipsis) {
+                    paginationHtml += '<span class="text-gray-500">...</span>';
+                }
+
+                // Last page
+                if (data.totalPages > 1) {
+                    paginationHtml += `
+                        <a href="javascript:void(0)" onclick="searchByCurrentMethod(${data.totalPages})"
+                           class="inline-flex items-center justify-center w-8 h-8 text-sm font-semibold ${data.totalPages === data.pageIndex ? 'bg-primary text-white' : 'text-gray-900 hover:bg-gray-100'} rounded-lg focus:outline-none">
+                            ${data.totalPages}
+                        </a>`;
+                }
+
+                paginationHtml += '</div>';
+                paginationContainer.innerHTML = paginationHtml;
+            } else {
+                paginationContainer.innerHTML = '';
+            }
+        }
+
+        // Helper function to determine which search method to use
+        function searchByCurrentMethod(page) {
+            const maSinhVien = document.getElementById('maSinhVien').value;
+            const tuNgay = document.getElementById('tuNgay').value;
+            const denNgay = document.getElementById('denNgay').value;
+
+            if (maSinhVien) {
+                searchByMSSV(page);
+            } else if (tuNgay && denNgay) {
+                searchByDateRange(page);
+            }
+        }
+    </script>
+} 
