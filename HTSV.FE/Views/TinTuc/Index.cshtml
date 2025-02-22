@@ -195,170 +195,75 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     <script>
-        const token = '@Html.Raw(token)';
         let quill;
         let currentId = null;
         let currentFile = null;
+        const token = '@token';
 
         // Cấu hình toastr
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
             "positionClass": "toast-top-right",
-            "timeOut": "3000"
         }
 
-        // Khởi tạo Quill editor
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Initializing Quill editor...');
-            try {
-                quill = new Quill('#editor', {
-                    theme: 'snow',
-                    modules: {
-                        toolbar: [
-                            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'color': [] }, { 'background': [] }],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            [{ 'align': [] }],
-                            ['link', 'image'],
-                            ['clean']
-                        ]
-                    },
-                    placeholder: 'Nhập nội dung tin tức...'
-                });
-                console.log('Quill editor initialized successfully');
+        $(document).ready(function() {
+            console.log('Document ready');
+            
+            // Khởi tạo Quill editor
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: 'Nhập nội dung tin tức...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'align': [] }],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+            console.log('Quill editor initialized');
 
-                // Attach form submit handler using jQuery
-                $('#newsForm').on('submit', function(e) {
-                    console.log('Form submitted via jQuery handler');
-                    handleSubmit(e);
-                });
-            } catch (error) {
-                console.error('Error initializing Quill:', error);
-            }
+            // Handle form submission
+            $('#newsForm').on('submit', function(e) {
+                console.log('Form submitted via jQuery');
+                e.preventDefault();
+                handleSubmit(e);
+            });
         });
 
-        function openCreateModal() {
-            console.log('Opening create modal...');
-            try {
-                currentId = null;
-                currentFile = null;
-                document.getElementById('modalTitle').textContent = 'Thêm tin tức mới';
-                document.getElementById('newsForm').reset();
-                if (quill) {
-                    quill.root.innerHTML = '';
-                } else {
-                    console.error('Quill editor not initialized');
-                }
-                document.getElementById('currentFileDisplay').classList.add('hidden');
-                document.getElementById('newsModal').classList.remove('hidden');
-                console.log('Create modal opened successfully');
-            } catch (error) {
-                console.error('Error opening create modal:', error);
-                toastr.error('Lỗi khi mở form tạo mới');
-            }
-        }
-
-        async function openEditModal(id) {
-            console.log('Opening edit modal for ID:', id);
-            try {
-                currentId = id;
-                document.getElementById('modalTitle').textContent = 'Cập nhật tin tức';
-                document.getElementById('newsModal').classList.remove('hidden');
-
-                console.log('Fetching news data...');
-                const response = await fetch(`http://localhost:5032/api/TinTuc/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                console.log('API Response:', response);
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('News data:', result);
-                    
-                    if (result.success) {
-                        const data = result.data;
-                        document.getElementById('newsId').value = data.id;
-                        document.getElementById('tieuDe').value = data.tieuDe;
-                        if (quill) {
-                            quill.root.innerHTML = data.noiDung;
-                        } else {
-                            console.error('Quill editor not initialized');
-                        }
-                        document.getElementById('trangThai').checked = data.trangThai;
-                        
-                        if (data.fileDinhKem) {
-                            currentFile = data.fileDinhKem;
-                            document.getElementById('currentFileName').textContent = data.fileDinhKem.split('/').pop();
-                            document.getElementById('currentFileDisplay').classList.remove('hidden');
-                        } else {
-                            currentFile = null;
-                            document.getElementById('currentFileDisplay').classList.add('hidden');
-                        }
-                        console.log('Edit modal populated successfully');
-                    }
-                }
-            } catch (error) {
-                console.error('Error in openEditModal:', error);
-                toastr.error('Đã xảy ra lỗi khi tải thông tin tin tức');
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('newsModal').classList.add('hidden');
-            document.getElementById('newsForm').reset();
-            quill.root.innerHTML = '';
-            currentId = null;
-            currentFile = null;
-            document.getElementById('currentFileDisplay').classList.add('hidden');
-        }
-
         async function handleSubmit(event) {
-            console.log('=== FORM SUBMISSION START ===');
-            event.preventDefault();
-            console.log('Form submission prevented');
-            
             try {
-                if (!quill) {
-                    throw new Error('Quill editor not initialized');
-                }
+                event.preventDefault();
+                console.log('=== STARTING FORM SUBMISSION ===');
 
-                const tieuDe = document.getElementById('tieuDe').value.trim();
-                const noiDung = quill.root.innerHTML.trim();
+                // Validate form
+                const tieuDe = document.getElementById('tieuDe').value;
+                const noiDung = quill.root.innerHTML;
+                const trangThai = document.getElementById('trangThai').checked;
+                const fileInput = document.getElementById('fileDinhKem');
+                
                 console.log('Form data:', {
                     tieuDe,
-                    noiDung: noiDung.substring(0, 100) + '...',
-                    currentId,
-                    hasFile: document.getElementById('fileDinhKem').files.length > 0
+                    noiDung,
+                    trangThai,
+                    hasFile: fileInput.files.length > 0
                 });
-                
-                if (!tieuDe) {
-                    console.log('Title validation failed');
-                    toastr.error('Vui lòng nhập tiêu đề');
+
+                if (!tieuDe || !noiDung) {
+                    toastr.error('Vui lòng điền đầy đủ thông tin bắt buộc');
                     return;
                 }
 
-                if (!noiDung) {
-                    console.log('Content validation failed');
-                    toastr.error('Vui lòng nhập nội dung');
-                    return;
-                }
-
-                const fileInput = document.getElementById('fileDinhKem');
-                let filePath = currentFile;
-                console.log('File handling:', {
-                    currentFile,
-                    newFileSelected: fileInput.files.length > 0
-                });
-
+                let filePath = '';
                 if (fileInput.files.length > 0) {
-                    console.log('Uploading new file...');
                     const formData = new FormData();
                     formData.append('file', fileInput.files[0]);
 
+                    console.log('Uploading file...');
                     const uploadResponse = await fetch('http://localhost:5032/api/TinTuc/upload', {
                         method: 'POST',
                         headers: {
@@ -367,97 +272,168 @@
                         body: formData
                     });
 
-                    console.log('Upload response:', uploadResponse);
+                    console.log('Upload response status:', uploadResponse.status);
+                    if (!uploadResponse.ok) {
+                        throw new Error('Failed to upload file');
+                    }
+
                     const uploadResult = await uploadResponse.json();
                     console.log('Upload result:', uploadResult);
-
-                    if (uploadResult.success) {
-                        filePath = uploadResult.data;
-                        console.log('File uploaded successfully:', filePath);
-                    } else {
-                        throw new Error(uploadResult.message || 'Lỗi upload file');
-                    }
+                    filePath = uploadResult.data;
                 }
 
                 const data = {
                     tieuDe,
                     noiDung,
-                    fileDinhKem: filePath || '',
-                    trangThai: document.getElementById('trangThai').checked
+                    fileDinhKem: filePath || currentFile,
+                    trangThai
                 };
-                console.log('Submitting data to API:', {
-                    url: currentId ? `http://localhost:5032/api/TinTuc/${currentId}` : 'http://localhost:5032/api/TinTuc',
+
+                console.log('Sending data to API:', data);
+
+                const url = currentId ? 
+                    `http://localhost:5032/api/TinTuc/${currentId}` : 
+                    'http://localhost:5032/api/TinTuc';
+                
+                const response = await fetch(url, {
                     method: currentId ? 'PUT' : 'POST',
-                    data: {...data, noiDung: data.noiDung.substring(0, 100) + '...'}
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
                 });
 
-                const response = await fetch(
-                    currentId ? `http://localhost:5032/api/TinTuc/${currentId}` : 'http://localhost:5032/api/TinTuc',
-                    {
-                        method: currentId ? 'PUT' : 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    }
-                );
-
-                console.log('API response:', response);
+                console.log('API response status:', response.status);
                 const result = await response.json();
                 console.log('API result:', result);
 
                 if (result.success) {
-                    toastr.success(currentId ? 'Cập nhật tin tức thành công' : 'Thêm tin tức mới thành công');
-                    console.log('Operation successful, reloading page...');
+                    toastr.success('Lưu tin tức thành công');
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
                 } else {
-                    throw new Error(result.message || 'Lỗi từ API');
+                    toastr.error(result.message || 'Không thể lưu tin tức');
                 }
             } catch (error) {
-                console.error('=== ERROR IN FORM SUBMISSION ===');
-                console.error('Error details:', error);
-                console.error('Stack trace:', error.stack);
-                toastr.error(`Đã xảy ra lỗi: ${error.message}`);
+                console.error('Error in handleSubmit:', error);
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
+                toastr.error('Đã xảy ra lỗi khi lưu tin tức');
             }
-            console.log('=== FORM SUBMISSION END ===');
         }
 
-        async function updateStatus(id, status) {
+        function openCreateModal() {
             try {
+                console.log('Opening create modal');
+                currentId = null;
+                currentFile = null;
+                
+                document.getElementById('modalTitle').textContent = 'Thêm tin tức mới';
+                document.getElementById('tieuDe').value = '';
+                quill.root.innerHTML = '';
+                document.getElementById('trangThai').checked = false;
+                document.getElementById('fileDinhKem').value = '';
+                
+                const modal = document.getElementById('newsModal');
+                modal.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error in openCreateModal:', error);
+                toastr.error('Đã xảy ra lỗi khi mở form thêm mới');
+            }
+        }
+
+        async function openEditModal(id) {
+            try {
+                console.log('Opening edit modal for ID:', id);
+                currentId = id;
+                
+                document.getElementById('modalTitle').textContent = 'Cập nhật tin tức';
+                
+                const response = await fetch(`http://localhost:5032/api/TinTuc/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log('API response status:', response.status);
+                const result = await response.json();
+                console.log('API result:', result);
+
+                if (result.success) {
+                    document.getElementById('tieuDe').value = result.data.tieuDe;
+                    quill.root.innerHTML = result.data.noiDung;
+                    document.getElementById('trangThai').checked = result.data.trangThai;
+                    currentFile = result.data.fileDinhKem;
+                    
+                    const modal = document.getElementById('newsModal');
+                    modal.classList.remove('hidden');
+                } else {
+                    toastr.error('Không thể lấy thông tin tin tức');
+                }
+            } catch (error) {
+                console.error('Error in openEditModal:', error);
+                toastr.error('Đã xảy ra lỗi khi mở form cập nhật');
+            }
+        }
+
+        function closeModal() {
+            try {
+                console.log('Closing modal');
+                const modal = document.getElementById('newsModal');
+                modal.classList.add('hidden');
+            } catch (error) {
+                console.error('Error in closeModal:', error);
+            }
+        }
+
+        async function updateStatus(id, newStatus) {
+            try {
+                if (!confirm('Bạn có chắc chắn muốn thay đổi trạng thái tin tức này?')) {
+                    return;
+                }
+
+                console.log('Updating status:', { id, newStatus });
+                
                 const response = await fetch(`http://localhost:5032/api/TinTuc/${id}/trang-thai`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(status)
+                    body: JSON.stringify(newStatus)
                 });
 
+                console.log('API response status:', response.status);
                 const result = await response.json();
+                console.log('API result:', result);
+
                 if (result.success) {
                     toastr.success('Cập nhật trạng thái thành công');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
                 } else {
                     toastr.error(result.message || 'Không thể cập nhật trạng thái');
-                    // Revert the checkbox state
-                    event.target.checked = !status;
                 }
             } catch (error) {
-                console.error('Error updating status:', error);
+                console.error('Error in updateStatus:', error);
                 toastr.error('Đã xảy ra lỗi khi cập nhật trạng thái');
-                // Revert the checkbox state
-                event.target.checked = !status;
             }
         }
 
         async function deleteNews(id) {
-            if (!confirm('Bạn có chắc chắn muốn xóa tin tức này?')) {
-                return;
-            }
-
             try {
+                if (!confirm('Bạn có chắc chắn muốn xóa tin tức này?')) {
+                    return;
+                }
+
+                console.log('Deleting news:', id);
+                
                 const response = await fetch(`http://localhost:5032/api/TinTuc/${id}`, {
                     method: 'DELETE',
                     headers: {
@@ -465,15 +441,20 @@
                     }
                 });
 
+                console.log('API response status:', response.status);
                 const result = await response.json();
+                console.log('API result:', result);
+
                 if (result.success) {
                     toastr.success('Xóa tin tức thành công');
-                    window.location.reload();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
                 } else {
                     toastr.error(result.message || 'Không thể xóa tin tức');
                 }
             } catch (error) {
-                console.error('Error deleting news:', error);
+                console.error('Error in deleteNews:', error);
                 toastr.error('Đã xảy ra lỗi khi xóa tin tức');
             }
         }
