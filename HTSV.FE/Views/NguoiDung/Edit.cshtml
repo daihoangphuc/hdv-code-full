@@ -2,7 +2,15 @@
 
 @{
     ViewData["Title"] = "Cập nhật người dùng";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    string Admin = Context.Session.GetString("Role") == "Admin" ? "Admin" : "Member";
+    if (User.IsInRole(Admin))
+    {
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
 }
 
 <div class="container mx-auto px-4 py-8">

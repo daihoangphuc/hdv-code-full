@@ -5,25 +5,44 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="min-h-[calc(100vh-200px)] flex items-center justify-center">
-    <div class="max-w-2xl w-full">
-        <!-- Logo và tiêu đề -->
-        <div class="text-center">
-            <img src="/images/logo.png" alt="Logo" class="h-16 mx-auto mb-4">
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">
-                Đăng ký tài khoản mới
-            </h2>
-            <p class="text-gray-600 mb-8">
-                Vui lòng điền đầy đủ thông tin bên dưới
-            </p>
-        </div>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hệ thống quản lý hoạt động sinh viên</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af',
+                        'primary-dark': '#1e3a8a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-r from-blue-100 to-blue-50">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full">
+            <!-- Logo và tiêu đề -->
+            <div class="text-center">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-2">
+                    HTSV
+                </h2>
+                <h3 class="text-xl text-gray-600 mb-8">
+                    Đăng ký tài khoản mới
+                </h3>
+            </div>
 
-        <!-- Form đăng ký -->
-        <div class="bg-white p-8 rounded-lg shadow-lg">
-            <form class="space-y-6" method="post" enctype="multipart/form-data">
-                <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm rounded-md"></div>
+            <!-- Form đăng ký -->
+            <div class="bg-white p-8 rounded-lg shadow-2xl">
+                <form class="space-y-6" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm rounded-md"></div>
 
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <!-- MSSV field -->
                     <div>
                         <label asp-for="MaSoSinhVien" class="block text-sm font-medium text-gray-700">Mã số sinh viên</label>
@@ -38,32 +57,32 @@
                         <span asp-validation-for="Email" class="text-red-500 text-sm"></span>
                     </div>
 
-                    <!-- Password field -->
-                    <div>
-                        <label asp-for="MatKhau" class="block text-sm font-medium text-gray-700">Mật khẩu</label>
-                        <input asp-for="MatKhau" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" placeholder="Nhập mật khẩu">
-                        <span asp-validation-for="MatKhau" class="text-red-500 text-sm"></span>
+                    <!-- Password fields -->
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label asp-for="MatKhau" class="block text-sm font-medium text-gray-700">Mật khẩu</label>
+                            <input asp-for="MatKhau" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" placeholder="Nhập mật khẩu">
+                            <span asp-validation-for="MatKhau" class="text-red-500 text-sm"></span>
+                        </div>
+                        <div>
+                            <label asp-for="XacNhanMatKhau" class="block text-sm font-medium text-gray-700">Xác nhận mật khẩu</label>
+                            <input asp-for="XacNhanMatKhau" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" placeholder="Xác nhận mật khẩu">
+                            <span asp-validation-for="XacNhanMatKhau" class="text-red-500 text-sm"></span>
+                        </div>
                     </div>
 
-                    <!-- Confirm Password field -->
-                    <div>
-                        <label asp-for="XacNhanMatKhau" class="block text-sm font-medium text-gray-700">Xác nhận mật khẩu</label>
-                        <input asp-for="XacNhanMatKhau" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" placeholder="Xác nhận mật khẩu">
-                        <span asp-validation-for="XacNhanMatKhau" class="text-red-500 text-sm"></span>
-                    </div>
-
-                    <!-- Full Name field -->
-                    <div>
-                        <label asp-for="HoTen" class="block text-sm font-medium text-gray-700">Họ và tên</label>
-                        <input asp-for="HoTen" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" placeholder="Nhập họ tên">
-                        <span asp-validation-for="HoTen" class="text-red-500 text-sm"></span>
-                    </div>
-
-                    <!-- Phone field -->
-                    <div>
-                        <label asp-for="SoDienThoai" class="block text-sm font-medium text-gray-700">Số điện thoại</label>
-                        <input asp-for="SoDienThoai" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" placeholder="Nhập số điện thoại">
-                        <span asp-validation-for="SoDienThoai" class="text-red-500 text-sm"></span>
+                    <!-- Personal Info -->
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label asp-for="HoTen" class="block text-sm font-medium text-gray-700">Họ và tên</label>
+                            <input asp-for="HoTen" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" placeholder="Nhập họ tên">
+                            <span asp-validation-for="HoTen" class="text-red-500 text-sm"></span>
+                        </div>
+                        <div>
+                            <label asp-for="SoDienThoai" class="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                            <input asp-for="SoDienThoai" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" placeholder="Nhập số điện thoại">
+                            <span asp-validation-for="SoDienThoai" class="text-red-500 text-sm"></span>
+                        </div>
                     </div>
 
                     <!-- Class selection -->
@@ -82,38 +101,41 @@
                     <!-- Avatar upload -->
                     <div>
                         <label asp-for="AnhDaiDien" class="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
-                        <div class="mt-1">
+                        <div class="mt-1 flex items-center">
                             <input asp-for="AnhDaiDien" type="file" accept="image/*" 
-                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 
-                                          file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary/80">
+                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary-dark">
                         </div>
                         <span asp-validation-for="AnhDaiDien" class="text-red-500 text-sm"></span>
                     </div>
-                </div>
 
-                <!-- Submit button -->
-                <div class="mt-6">
-                    <button type="submit" 
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium 
-                                   text-white bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 
-                                   focus:ring-primary transition-colors duration-200">
-                        Đăng ký
-                    </button>
-                </div>
+                    <!-- Submit button -->
+                    <div>
+                        <button type="submit" 
+                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-200">
+                            Đăng ký
+                        </button>
+                    </div>
 
-                <!-- Login link -->
-                <div class="text-sm text-center mt-4">
-                    <span class="text-gray-600">Đã có tài khoản?</span>
-                    <a href="@Url.Action("Login", "Account")" 
-                       class="font-medium text-primary hover:text-primary/80 transition-colors duration-200">
-                        Đăng nhập ngay
-                    </a>
-                </div>
-            </form>
+                    <!-- Login link -->
+                    <div class="text-sm text-center">
+                        <span class="text-gray-600">Đã có tài khoản?</span>
+                        <a href="@Url.Action("Login", "Account")" 
+                           class="font-medium text-primary hover:text-primary-dark transition-colors duration-200">
+                            Đăng nhập ngay
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 text-center text-sm text-gray-600">
+                &copy; @DateTime.Now.Year - Hệ thống quản lý hoạt động sinh viên
+            </div>
         </div>
     </div>
-</div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-} 
+    @section Scripts {
+        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    }
+</body>
+</html> 

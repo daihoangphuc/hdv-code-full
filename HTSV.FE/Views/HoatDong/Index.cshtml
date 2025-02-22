@@ -4,8 +4,8 @@
 @model PaginatedList<HTSV.FE.Models.HoatDong.HoatDongViewModel>
 
 @{
-    ViewData["Title"] = "Quản lý hoạt động";
-    string userRole = Context.Session.GetString("Role") ?? "Member";
+    ViewData["Title"] = "Danh sách hoạt động";
+    var userRole = User.IsInRole("Admin") ? "Admin" : "Member";
     if (User.IsInRole("Admin") || userRole == "Admin")
     {
         Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -14,150 +14,430 @@
     {
         Layout = "~/Views/Shared/_Layout.cshtml";
     }
+    var token = Context.Session.GetString("TokenUser");
 }
 
-<div class="container mx-auto px-4">
-    <div class="bg-white p-6 rounded-lg shadow-lg">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">@ViewData["Title"]</h1>
-            @if (User.IsInRole("Admin") || userRole == "Admin")
-            {
-                <a href="@Url.Action("Create")" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    Thêm hoạt động mới
-                </a>
-            }
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
+    <div class="mb-1 w-full">
+        <div class="mb-4">
+            <nav class="flex mb-5" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
+                    <li class="inline-flex items-center">
+                        <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
+                            <svg class="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
+                    </svg>
+                            Trang chủ
+                        </a>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                            </svg>
+                            <span class="ms-1 text-sm font-medium text-gray-500 md:ms-2">Quản lý hoạt động</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Danh sách hoạt động</h1>
         </div>
+        <div class="sm:flex">
+            <div class="items-center hidden mb-3 sm:flex sm:divide-x sm:divide-gray-100 sm:mb-0">
+                <form class="lg:pr-3" action="" method="get">
+                    <label for="search" class="sr-only">Tìm kiếm</label>
+                    <div class="relative mt-1 lg:w-64 xl:w-96">
+                        <input type="text" name="searchTerm" id="search" 
+                               class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" 
+                               placeholder="Tìm kiếm hoạt động">
+                    </div>
+                </form>
+                @if (userRole == "Admin")
+                {
+                    <div class="flex pl-0 mt-3 space-x-2 sm:pl-2 sm:mt-0">
+                        <button type="button" onclick="showCreateModal()" 
+                                data-modal-target="activityModal"
+                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+                            </svg>
+                            Thêm hoạt động
+                        </button>
+                        <a href="@Url.Action("Export")" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"/>
+                            </svg>
+                            Xuất Excel
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 
-        <!-- Search and Filter Section -->
-        <div class="mb-6">
-            <div class="flex gap-4">
-                <input type="text" id="searchInput" placeholder="Tìm kiếm hoạt động..." 
-                       class="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="search()" class="bg-gray-100 px-4 py-2 rounded hover:bg-gray-200">
-                    Tìm kiếm
+<div class="flex flex-col">
+    <div class="overflow-x-auto">
+        <div class="inline-block min-w-full align-middle">
+            <div class="overflow-hidden shadow">
+                <table class="min-w-full divide-y divide-gray-200 table-fixed">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Tên hoạt động
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Thời gian
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Địa điểm
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
+                                Trạng thái
+                            </th>
+                            <th scope="col" class="p-4 text-xs font-medium text-right text-gray-500 uppercase">
+                                Thao tác
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr class="hover:bg-gray-100">
+                                <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap">
+                                    <div class="text-base font-semibold text-gray-900">@item.TenHoatDong</div>
+                                    <div class="text-sm text-gray-500">@item.MoTa</div>
+                                </td>
+                                <td class="p-4 text-base text-gray-900 whitespace-nowrap">
+                                    <div>Bắt đầu: @item.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")</div>
+                                    <div>Kết thúc: @item.ThoiGianKetThuc.ToString("dd/MM/yyyy HH:mm")</div>
+                                </td>
+                                <td class="p-4 text-base text-gray-900 whitespace-nowrap">@item.DiaDiem</td>
+                                <td class="p-4 whitespace-nowrap">
+                                    @{
+                                        var statusClass = item.TrangThai switch
+                                        {
+                                            0 => "bg-yellow-100 text-yellow-800",
+                                            1 => "bg-green-100 text-green-800",
+                                            2 => "bg-red-100 text-red-800",
+                                            _ => "bg-gray-100 text-gray-800"
+                                        };
+                                        var statusText = item.TrangThai switch
+                                        {
+                                            0 => "Chưa diễn ra",
+                                            1 => "Đang diễn ra",
+                                            2 => "Đã kết thúc",
+                                            _ => "Không xác định"
+                                        };
+                                    }
+                                    <span class="@statusClass text-xs font-medium px-2 py-0.5 rounded">
+                                        @statusText
+                                    </span>
+                                </td>
+                                <td class="p-4 space-x-2 whitespace-nowrap text-right">
+                                    <a href="@Url.Action("Details", new { id = item.Id })" 
+                                       class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </a>
+                                    @if (userRole == "Admin")
+                                    {
+                                        <button type="button" onclick="showEditModal(@item.Id)"
+                                                data-modal-target="activityModal"
+                                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 focus:ring-4 focus:ring-yellow-300">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                                            <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </button>
+                                        <button type="button" onclick="deleteHoatDong(@item.Id)"
+                                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-600 rounded-lg hover:bg-red-800 focus:ring-4 focus:ring-red-300">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Phân trang -->
+    <div class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between">
+        <div class="flex items-center mb-4 sm:mb-0">
+        <span class="text-sm font-normal text-gray-500">
+            Trang <span class="font-semibold text-gray-900">@Model.PageIndex</span> / <span class="font-semibold text-gray-900">@Model.TotalPages</span>
+        </span>
+    </div>
+    <div class="flex items-center space-x-3">
+        <a href="?page=@(Model.PageIndex - 1)" class="@(Model.HasPreviousPage ? "" : "pointer-events-none opacity-50") inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+            <svg class="w-5 h-5 mr-1 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+            Trang trước
+        </a>
+        <a href="?page=@(Model.PageIndex + 1)" class="@(Model.HasNextPage ? "" : "pointer-events-none opacity-50") inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+            Trang sau
+            <svg class="w-5 h-5 ml-1 -mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+            </a>
+        </div>
+</div>
+
+<!-- Modal thêm/sửa hoạt động -->
+<div id="activityModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow">
+            <!-- Modal header -->
+            <div class="flex items-start justify-between p-4 border-b rounded-t">
+                <h3 class="text-xl font-semibold text-gray-900" id="modalTitle">
+                    Thêm hoạt động mới
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center" data-modal-hide="activityModal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Đóng</span>
                 </button>
             </div>
-        </div>
-
-        <!-- Activities List -->
-        <div class="overflow-x-auto">
-            <table class="min-w-full bg-white">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên hoạt động</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Địa điểm</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200" id="activitiesList">
-                    <!-- Activities will be loaded here -->
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="mt-4 flex justify-between items-center">
-            <div class="text-sm text-gray-500">
-                Hiển thị <span id="itemCount">0</span> hoạt động
+            <!-- Modal body -->
+            <div class="p-6 space-y-6">
+                <form id="activityForm">
+                    <input type="hidden" id="activityId" />
+                    <div class="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2">
+                        <div class="md:col-span-2">
+                            <label for="tenHoatDong" class="block mb-2 text-sm font-medium text-gray-900">Tên hoạt động</label>
+                            <input type="text" id="tenHoatDong" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required maxlength="200">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="moTa" class="block mb-2 text-sm font-medium text-gray-900">Mô tả</label>
+                            <textarea id="moTa" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary focus:border-primary" maxlength="1000"></textarea>
+                        </div>
+                        <div>
+                            <label for="thoiGianBatDau" class="block mb-2 text-sm font-medium text-gray-900">Thời gian bắt đầu</label>
+                            <input type="datetime-local" id="thoiGianBatDau" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div>
+                            <label for="thoiGianKetThuc" class="block mb-2 text-sm font-medium text-gray-900">Thời gian kết thúc</label>
+                            <input type="datetime-local" id="thoiGianKetThuc" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="diaDiem" class="block mb-2 text-sm font-medium text-gray-900">Địa điểm</label>
+                            <input type="text" id="diaDiem" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required maxlength="200">
+                        </div>
+                        <div>
+                            <label for="soLuongToiDa" class="block mb-2 text-sm font-medium text-gray-900">Số lượng tối đa</label>
+                            <input type="number" id="soLuongToiDa" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required min="1">
+                        </div>
+                        <div>
+                            <label for="toaDo" class="block mb-2 text-sm font-medium text-gray-900">Tọa độ</label>
+                            <input type="text" id="toaDo" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" placeholder="VD: 10.762622,106.660172">
+                        </div>
+                        <div>
+                            <label for="hocKy" class="block mb-2 text-sm font-medium text-gray-900">Học kỳ</label>
+                            <select id="hocKy" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                                <option value="1">Học kỳ 1</option>
+                                <option value="2">Học kỳ 2</option>
+                                <option value="3">Học kỳ 3</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="namHoc" class="block mb-2 text-sm font-medium text-gray-900">Năm học</label>
+                            <input type="text" id="namHoc" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required pattern="\d{4}-\d{4}" placeholder="VD: 2023-2024">
+                        </div>
+                        <div>
+                            <label for="trangThai" class="block mb-2 text-sm font-medium text-gray-900">Trạng thái</label>
+                            <select id="trangThai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                                <option value="1">Sắp diễn ra</option>
+                                <option value="2">Đang diễn ra</option>
+                                <option value="3">Đã kết thúc</option>
+                                <option value="4">Đã hủy</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="congKhai" type="checkbox" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary">
+                            <label for="congKhai" class="ml-2 text-sm font-medium text-gray-900">Công khai hoạt động</label>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="flex gap-2">
-                <button onclick="previousPage()" class="px-3 py-1 border rounded hover:bg-gray-100">Trước</button>
-                <button onclick="nextPage()" class="px-3 py-1 border rounded hover:bg-gray-100">Sau</button>
+            <!-- Modal footer -->
+            <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b">
+                <button type="button" onclick="saveActivity()" id="saveButton" class="text-white bg-primary hover:bg-primary-dark focus:ring-4 focus:outline-none focus:ring-primary-light font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center">
+                    <span id="saveButtonText">Lưu</span>
+                    <svg id="saveButtonLoading" class="hidden w-4 h-4 ml-2 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+                <button type="button" data-modal-hide="activityModal" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10">
+                    Hủy
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     <script>
-        let currentPage = 1;
-        const pageSize = 10;
-
-        async function loadActivities() {
-            try {
-                const response = await fetch(`/api/HoatDong?page=${currentPage}&pageSize=${pageSize}`);
-                const data = await response.json();
-                
-                const tbody = document.getElementById('activitiesList');
-                tbody.innerHTML = '';
-
-                data.items.forEach(activity => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap">${activity.tenHoatDong}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${new Date(activity.thoiGianBatDau).toLocaleDateString()}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${activity.diaDiem}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                ${activity.trangThai === 'DangDienRa' ? 'bg-green-100 text-green-800' : 
-                                  activity.trangThai === 'ChuaBatDau' ? 'bg-yellow-100 text-yellow-800' : 
-                                  'bg-red-100 text-red-800'}">
-                                ${activity.trangThai}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div class="flex gap-2">
-                                <a href="/HoatDong/Details/${activity.id}" class="text-blue-600 hover:text-blue-900">Chi tiết</a>
-                                ${(User.IsInRole("Admin") || '@userRole' === "Admin") ? `
-                                <a href="/HoatDong/Edit/${activity.id}" class="text-indigo-600 hover:text-indigo-900">Sửa</a>
-                                <button onclick="deleteActivity(${activity.id})" class="text-red-600 hover:text-red-900">Xóa</button>
-                                ` : ''}
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-                document.getElementById('itemCount').textContent = data.totalItems;
-            } catch (error) {
-                console.error('Error loading activities:', error);
+        const token = '@token';
+        
+        // Khởi tạo modal
+        const modalOptions = {
+            placement: 'center',
+            backdrop: 'dynamic',
+            closable: true,
+            onShow: () => {
+                console.log('Modal shown');
+            },
+            onHide: () => {
+                console.log('Modal hidden');
+                document.getElementById('activityForm').reset();
             }
+        };
+
+        const modalElement = document.getElementById('activityModal');
+        const modal = new Modal(modalElement, modalOptions);
+
+        function showCreateModal() {
+            document.getElementById('modalTitle').textContent = 'Thêm hoạt động mới';
+            document.getElementById('activityId').value = '';
+            document.getElementById('activityForm').reset();
+            document.getElementById('trangThai').value = '1'; // Mặc định là "Sắp diễn ra"
+            modal.show();
         }
 
-        async function deleteActivity(id) {
-            if (!confirm('Bạn có chắc chắn muốn xóa hoạt động này?')) return;
-
+        async function showEditModal(id) {
             try {
-                const response = await fetch(`/api/HoatDong/${id}`, {
-                    method: 'DELETE',
+                const response = await fetch(`http://localhost:5032/api/HoatDong/${id}`, {
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Authorization': `Bearer ${token}`
                     }
                 });
-
-                if (response.ok) {
-                    loadActivities();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    const activity = result.data;
+                    document.getElementById('modalTitle').textContent = 'Cập nhật hoạt động';
+                    document.getElementById('activityId').value = activity.id;
+                    document.getElementById('tenHoatDong').value = activity.tenHoatDong;
+                    document.getElementById('moTa').value = activity.moTa;
+                    document.getElementById('thoiGianBatDau').value = activity.thoiGianBatDau.slice(0, 16);
+                    document.getElementById('thoiGianKetThuc').value = activity.thoiGianKetThuc.slice(0, 16);
+                    document.getElementById('diaDiem').value = activity.diaDiem;
+                    document.getElementById('soLuongToiDa').value = activity.soLuongToiDa;
+                    document.getElementById('toaDo').value = activity.toaDo;
+                    document.getElementById('hocKy').value = activity.hocKy;
+                    document.getElementById('namHoc').value = activity.namHoc;
+                    document.getElementById('trangThai').value = activity.trangThai.toString();
+                    document.getElementById('congKhai').checked = activity.congKhai;
+                    modal.show();
                 } else {
-                    alert('Có lỗi xảy ra khi xóa hoạt động');
+                    alert(result.message || 'Không thể tải thông tin hoạt động');
                 }
             } catch (error) {
-                console.error('Error deleting activity:', error);
-                alert('Có lỗi xảy ra khi xóa hoạt động');
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi khi tải thông tin hoạt động');
             }
         }
 
-        function previousPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                loadActivities();
+        async function saveActivity() {
+            const saveButton = document.getElementById('saveButton');
+            const saveButtonText = document.getElementById('saveButtonText');
+            const saveButtonLoading = document.getElementById('saveButtonLoading');
+
+            try {
+                // Disable nút và hiện loading
+                saveButton.disabled = true;
+                saveButtonText.textContent = 'Đang lưu';
+                saveButtonLoading.classList.remove('hidden');
+
+                const activityId = document.getElementById('activityId').value;
+                const activity = {
+                    tenHoatDong: document.getElementById('tenHoatDong').value,
+                    moTa: document.getElementById('moTa').value,
+                    thoiGianBatDau: document.getElementById('thoiGianBatDau').value,
+                    thoiGianKetThuc: document.getElementById('thoiGianKetThuc').value,
+                    diaDiem: document.getElementById('diaDiem').value,
+                    soLuongToiDa: parseInt(document.getElementById('soLuongToiDa').value),
+                    toaDo: document.getElementById('toaDo').value,
+                    hocKy: parseInt(document.getElementById('hocKy').value),
+                    namHoc: document.getElementById('namHoc').value,
+                    trangThai: parseInt(document.getElementById('trangThai').value),
+                    congKhai: document.getElementById('congKhai').checked
+                };
+
+                const url = activityId ? `http://localhost:5032/api/HoatDong/${activityId}` : 'http://localhost:5032/api/HoatDong';
+                const method = activityId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(activity)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Network response was not ok');
+                }
+
+                        const result = await response.json();
+                        if (result.success) {
+                    modal.hide();
+                    window.location.reload();
+                } else {
+                    alert(result.message || 'Không thể lưu hoạt động');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi khi lưu hoạt động: ' + error.message);
+            } finally {
+                // Reset trạng thái nút
+                saveButton.disabled = false;
+                saveButtonText.textContent = 'Lưu';
+                saveButtonLoading.classList.add('hidden');
             }
         }
 
-        function nextPage() {
-            currentPage++;
-            loadActivities();
+        function deleteHoatDong(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa hoạt động này?')) {
+                fetch(`/HoatDong/Delete/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                                window.location.reload();
+                    } else {
+                        alert(data.message || 'Không thể xóa hoạt động');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã xảy ra lỗi khi xóa hoạt động');
+                });
+            }
         }
-
-        function search() {
-            currentPage = 1;
-            loadActivities();
-        }
-
-        // Load activities when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            loadActivities();
-        });
     </script>
 } 

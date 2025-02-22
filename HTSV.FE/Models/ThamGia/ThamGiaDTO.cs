@@ -50,4 +50,10 @@ namespace HTSV.FE.Models.ThamGia
         public int TrangThai { get; set; }
         public string GhiChu { get; set; }
     }
+
+    public class ExportThamGiaDTO
+    {
+        public int? HoatDongId { get; set; }
+        public string? MaSinhVien { get; set; }
+    }
 } 

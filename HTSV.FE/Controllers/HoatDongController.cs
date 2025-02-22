@@ -20,8 +20,8 @@ namespace HTSV.FE.Controllers
             _logger = logger;
             _jsonOptions = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true
             };
         }
 
@@ -32,18 +32,13 @@ namespace HTSV.FE.Controllers
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add("Accept", "application/json");
                 
-                var loginInfo = HttpContext.Session.Get<LoginResponseModel>("LoginResponse");
-                if (loginInfo != null && !string.IsNullOrEmpty(loginInfo.Token))
+                var token = HttpContext.Session.GetString("TokenUser");
+                if (!string.IsNullOrEmpty(token))
                 {
-                    _logger.LogInformation("Adding token to request header");
-                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {loginInfo.Token}");
+                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                     return true;
                 }
-                else 
-                {
-                    _logger.LogWarning("No token found in session");
-                    return false;
-                }
+                return false;
             }
             catch (Exception ex)
             {
@@ -57,34 +52,29 @@ namespace HTSV.FE.Controllers
             try
             {
                 using var client = _clientFactory.CreateClient("BE");
-                if (!AddAuthenticationHeader(client)) return RedirectToAction("Login", "Account");
+                if (!AddAuthenticationHeader(client))
+                {
+                    return RedirectToAction("Login", "Account");
+                }
 
-                // Cập nhật trạng thái hoạt động trước khi lấy danh sách
-                await client.PostAsync("api/HoatDong/update-status", null);
-
-                string url = $"api/HoatDong?PageIndex={page}&PageSize={pageSize}";
-                
+                var url = $"api/HoatDong?pageIndex={page}&pageSize={pageSize}";
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     url += $"&searchTerm={Uri.EscapeDataString(searchTerm)}";
                 }
 
                 var response = await client.GetAsync(url);
-                if (!response.IsSuccessStatusCode)
+                if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogError($"Error calling API: {response.StatusCode}");
-                    return View(new PaginatedList<HoatDongViewModel>());
+                    var content = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<ApiResponse<PaginatedList<HoatDongViewModel>>>(content, _jsonOptions);
+
+                    if (result?.Success == true)
+                    {
+                        return View(result.Data);
+                    }
                 }
 
-                var content = await response.Content.ReadAsStringAsync();
-                var apiResponse = JsonSerializer.Deserialize<ApiResponse<PaginatedList<HoatDongViewModel>>>(content, _jsonOptions);
-
-                if (apiResponse?.Success == true)
-                {
-                    return View(apiResponse.Data);
-                }
-
-                _logger.LogError($"API returned error: {apiResponse?.Error}");
                 return View(new PaginatedList<HoatDongViewModel>());
             }
             catch (Exception ex)
@@ -99,55 +89,50 @@ namespace HTSV.FE.Controllers
         {
             try
             {
-                using var client = _clientFactory.CreateClient("BE");
+                var client = _clientFactory.CreateClient("BE");
                 if (!AddAuthenticationHeader(client))
                 {
                     return RedirectToAction("Login", "Account");
                 }
 
+                // Lấy thông tin hoạt động
                 var response = await client.GetAsync($"api/HoatDong/{id}");
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError($"Error calling API: {response.StatusCode}");
-                    return NotFound();
+                    return RedirectToAction(nameof(Index));
                 }
 
                 var content = await response.Content.ReadAsStringAsync();
-                var apiResponse = JsonSerializer.Deserialize<ApiResponse<HoatDongViewModel>>(content, _jsonOptions);
+                var result = JsonSerializer.Deserialize<ApiResponse<HoatDongViewModel>>(content, _jsonOptions);
 
-                if (apiResponse?.Success == true && apiResponse.Data != null)
+                if (result?.Success != true || result.Data == null)
                 {
-                    // Lấy mã sinh viên từ session
-                    var maSinhVien = HttpContext.Session.GetString("MaSinhVien");
-                    
-                    // Kiểm tra đăng ký của người dùng
-                    var dangKyResponse = await client.GetAsync($"api/DangKy/nguoi-dang-ky?maSinhVien={maSinhVien}");
-                    var dangKyContent = await dangKyResponse.Content.ReadAsStringAsync();
-                    var dangKyApiResponse = JsonSerializer.Deserialize<ApiResponse<List<DangKyDTO>>>(dangKyContent, _jsonOptions);
+                    return RedirectToAction(nameof(Index));
+                }
 
-                    if (dangKyApiResponse?.Success == true && dangKyApiResponse.Data != null)
+                // Kiểm tra trạng thái đăng ký của người dùng
+                var maSinhVien = User.GetMaSinhVien();
+                var dangKyResponse = await client.GetAsync($"api/DangKy/nguoi-dang-ky?maSinhVien={maSinhVien}");
+                
+                if (dangKyResponse.IsSuccessStatusCode)
+                {
+                    var dangKyContent = await dangKyResponse.Content.ReadAsStringAsync();
+                    var dangKyResult = JsonSerializer.Deserialize<ApiResponse<List<DangKyDTO>>>(dangKyContent, _jsonOptions);
+
+                    if (dangKyResult?.Success == true && dangKyResult.Data != null)
                     {
-                        // Tìm đăng ký cho hoạt động hiện tại
-                        var dangKy = dangKyApiResponse.Data.FirstOrDefault(dk => dk.HoatDongId == id);
+                        var dangKy = dangKyResult.Data.FirstOrDefault(dk => dk.HoatDongId == id);
                         ViewBag.DaDangKy = dangKy != null;
                         ViewBag.DangKyId = dangKy?.Id;
                     }
-                    else
-                    {
-                        ViewBag.DaDangKy = false;
-                        ViewBag.DangKyId = null;
-                    }
-
-                    return View(apiResponse.Data);
                 }
 
-                _logger.LogError($"API returned error: {apiResponse?.Error}");
-                return NotFound();
+                return View(result.Data);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in Details action");
-                return NotFound();
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -189,34 +174,22 @@ namespace HTSV.FE.Controllers
         {
             try
             {
-                var client = _clientFactory.CreateClient("BE");
+                using var client = _clientFactory.CreateClient("BE");
                 if (!AddAuthenticationHeader(client))
                 {
-                    return Json(new { success = false, message = "Phiên đăng nhập đã hết hạn" });
+                    return Json(new { success = false, message = "Unauthorized" });
                 }
-                
-                _logger.LogInformation($"Creating activity: {JsonSerializer.Serialize(model)}");
-                var response = await client.PostAsJsonAsync("/api/hoatdong", model);
-                var content = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation($"Create activity response: {content}");
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = JsonSerializer.Deserialize<ApiResponse<HoatDongViewModel>>(content, _jsonOptions);
 
-                    if (result?.Success == true)
-                    {
-                        return Json(new { success = true, message = "Tạo hoạt động thành công", data = result.Data });
-                    }
-                    return Json(new { success = false, message = result?.Message ?? "Không thể tạo hoạt động" });
-                }
-                
-                return Json(new { success = false, message = $"Lỗi {response.StatusCode}: {content}" });
+                var response = await client.PostAsJsonAsync("api/HoatDong", model);
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ApiResponse<HoatDongViewModel>>(content, _jsonOptions);
+
+                return Json(new { success = response.IsSuccessStatusCode, message = result?.Message, data = result?.Data });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating activity");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi tạo hoạt động" });
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi tạo hoạt động" });
             }
         }
 
@@ -227,32 +200,22 @@ namespace HTSV.FE.Controllers
         {
             try
             {
-                var client = _clientFactory.CreateClient("BE");
-                AddAuthenticationHeader(client);
-                
-                _logger.LogInformation($"Updating activity {id}: {JsonSerializer.Serialize(model)}");
-                var response = await client.PutAsJsonAsync($"/api/hoatdong/{id}", model);
-                var content = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation($"Update activity response: {content}");
-                
-                if (response.IsSuccessStatusCode)
+                using var client = _clientFactory.CreateClient("BE");
+                if (!AddAuthenticationHeader(client))
                 {
-                    var result = JsonSerializer.Deserialize<ApiResponse<HoatDongViewModel>>(content,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    if (result?.Success == true)
-                    {
-                        return Json(new { success = true, message = "Cập nhật hoạt động thành công", data = result.Data });
-                    }
-                    return Json(new { success = false, message = result?.Message ?? "Không thể cập nhật hoạt động" });
+                    return Json(new { success = false, message = "Unauthorized" });
                 }
-                
-                return Json(new { success = false, message = $"Lỗi {response.StatusCode}: {content}" });
+
+                var response = await client.PutAsJsonAsync($"api/HoatDong/{id}", model);
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ApiResponse<HoatDongViewModel>>(content, _jsonOptions);
+
+                return Json(new { success = response.IsSuccessStatusCode, message = result?.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating activity");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật hoạt động" });
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi cập nhật hoạt động" });
             }
         }
 
@@ -262,29 +225,22 @@ namespace HTSV.FE.Controllers
         {
             try
             {
-                var client = _clientFactory.CreateClient("BE");
-                AddAuthenticationHeader(client);
-                
-                var response = await client.PutAsJsonAsync($"/api/hoatdong/{model.HoatDongId}/trang-thai", model);
-                var content = await response.Content.ReadAsStringAsync();
-                
-                if (response.IsSuccessStatusCode)
+                using var client = _clientFactory.CreateClient("BE");
+                if (!AddAuthenticationHeader(client))
                 {
-                    var result = JsonSerializer.Deserialize<ApiResponse<bool>>(content,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    if (result?.Success == true)
-                    {
-                        return Json(new { success = true, message = "Cập nhật trạng thái thành công" });
-                    }
+                    return Json(new { success = false, message = "Unauthorized" });
                 }
-                
-                return Json(new { success = false, message = "Không thể cập nhật trạng thái" });
+
+                var response = await client.PutAsJsonAsync($"api/HoatDong/{model.TrangThai}/trang-thai", model);
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ApiResponse<bool>>(content, _jsonOptions);
+
+                return Json(new { success = response.IsSuccessStatusCode, message = result?.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating activity status");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật trạng thái" });
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi cập nhật trạng thái" });
             }
         }
 
@@ -326,29 +282,22 @@ namespace HTSV.FE.Controllers
         {
             try
             {
-                var client = _clientFactory.CreateClient("BE");
-                AddAuthenticationHeader(client);
-                
-                var response = await client.DeleteAsync($"/api/hoatdong/{id}");
-                var content = await response.Content.ReadAsStringAsync();
-                
-                if (response.IsSuccessStatusCode)
+                using var client = _clientFactory.CreateClient("BE");
+                if (!AddAuthenticationHeader(client))
                 {
-                    var result = JsonSerializer.Deserialize<ApiResponse<bool>>(content,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    if (result?.Success == true)
-                    {
-                        return Json(new { success = true, message = "Xóa hoạt động thành công" });
-                    }
+                    return Json(new { success = false, message = "Unauthorized" });
                 }
-                
-                return Json(new { success = false, message = "Không thể xóa hoạt động" });
+
+                var response = await client.DeleteAsync($"api/HoatDong/{id}");
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ApiResponse<bool>>(content, _jsonOptions);
+
+                return Json(new { success = response.IsSuccessStatusCode, message = result?.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting activity");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi xóa hoạt động" });
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi xóa hoạt động" });
             }
         }
 
@@ -358,22 +307,23 @@ namespace HTSV.FE.Controllers
             try
             {
                 using var client = _clientFactory.CreateClient("BE");
-                if (!AddAuthenticationHeader(client)) return RedirectToAction("Login", "Account");
-
-                var response = await client.GetAsync("api/HoatDong/export");
-                if (!response.IsSuccessStatusCode)
+                if (!AddAuthenticationHeader(client))
                 {
-                    TempData["Error"] = "Có lỗi xảy ra khi xuất file Excel";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Login", "Account");
                 }
 
-                var content = await response.Content.ReadAsByteArrayAsync();
-                return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DanhSachHoatDong.xlsx");
+                var response = await client.GetAsync("api/HoatDong/export");
+                if (response.IsSuccessStatusCode)
+                {
+                    var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DanhSachHoatDong.xlsx");
+                }
+
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in Export action");
-                TempData["Error"] = "Có lỗi xảy ra khi xuất file Excel";
+                _logger.LogError(ex, "Error exporting activities");
                 return RedirectToAction(nameof(Index));
             }
         }

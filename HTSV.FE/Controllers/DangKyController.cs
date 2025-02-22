@@ -65,7 +65,7 @@ namespace HTSV.FE.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Member")]
         public async Task<IActionResult> Export(string? maSinhVien = null, int? hoatDongId = null)
         {
             try

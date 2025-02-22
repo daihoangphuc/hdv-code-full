@@ -6,7 +6,7 @@
     string userRole = Context.Session.GetString("Role") ?? "Member";
     if (User.IsInRole("Admin") || userRole == "Admin")
     {
-        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
     }
     else
     {
@@ -39,9 +39,9 @@
             {
                 <button onclick="openCreateModal()" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark">
                     Thêm tin tức mới
-                </button>
-            }
-        </div>
+                    </button>
+                }
+            </div>
 
         <!-- Search Section -->
         <div class="mb-6">
@@ -49,13 +49,13 @@
                 <input type="text" id="searchInput" placeholder="Tìm kiếm tin tức..." 
                        class="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
                 <button onclick="search()" class="bg-gray-100 px-4 py-2 rounded hover:bg-gray-200">
-                    Tìm kiếm
-                </button>
-            </div>
-        </div>
+                        Tìm kiếm
+                    </button>
+    </div>
+</div>
 
         <!-- News Table -->
-        <div class="overflow-x-auto">
+    <div class="overflow-x-auto">
             <table class="min-w-full bg-white">
                 <thead class="bg-gray-50">
                     <tr>
@@ -64,11 +64,11 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
-                    </tr>
-                </thead>
+                        </tr>
+                    </thead>
                 <tbody class="divide-y divide-gray-200">
-                    @foreach (var item in Model.Items)
-                    {
+                        @foreach (var item in Model.Items)
+                        {
                         <tr>
                             <td class="px-6 py-4">
                                 <a href="/TinTuc/Details/@item.Id" class="text-primary hover:underline">@item.TieuDe</a>
@@ -104,10 +104,10 @@
                                     }
                                 </div>
                             </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
         </div>
 
         <!-- Pagination -->
@@ -143,19 +143,19 @@
             </button>
         </div>
 
-        <form id="newsForm" onsubmit="handleSubmit(event)" class="space-y-4">
+        <form id="newsForm" class="space-y-4">
             <input type="hidden" id="newsId" value="">
             
             <div>
                 <label for="tieuDe" class="block text-sm font-medium text-gray-700">Tiêu đề <span class="text-red-500">*</span></label>
                 <input type="text" id="tieuDe" name="tieuDe" required
                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary">
-            </div>
+        </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Nội dung <span class="text-red-500">*</span></label>
                 <div id="editor" class="mt-1"></div>
-            </div>
+    </div>
 
             <div>
                 <label for="fileDinhKem" class="block text-sm font-medium text-gray-700">File đính kèm</label>
@@ -165,14 +165,14 @@
                 <div id="currentFileDisplay" class="mt-2 hidden">
                     <p class="text-sm text-gray-600">File hiện tại: <span id="currentFileName" class="font-medium"></span></p>
                 </div>
-            </div>
+                        </div>
 
             <div>
                 <label class="inline-flex items-center">
                     <input type="checkbox" id="trangThai" name="trangThai" class="rounded border-gray-300 text-primary focus:ring-primary">
                     <span class="ml-2">Xuất bản ngay</span>
-                </label>
-            </div>
+                            </label>
+                        </div>
 
             <div class="flex justify-end gap-4">
                 <button type="button" onclick="closeModal()" 
@@ -182,16 +182,16 @@
                 <button type="submit"
                         class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                     Lưu
-                </button>
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
-    </div>
-</div>
+        </div>
 
 @section Scripts {
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     <script>
@@ -199,13 +199,15 @@
         let currentId = null;
         let currentFile = null;
         const token = '@token';
+        const uploadPath = 'D:/!Học Kỳ 7/BaoCaoHDV/HTSV.FE/wwwroot/images/tintuc/';
 
         // Cấu hình toastr
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
             "positionClass": "toast-top-right",
-        }
+            "timeOut": "3000"
+        };
 
         $(document).ready(function() {
             console.log('Document ready');
@@ -227,13 +229,46 @@
             });
             console.log('Quill editor initialized');
 
-            // Handle form submission
+            // Attach form submit handler
             $('#newsForm').on('submit', function(e) {
-                console.log('Form submitted via jQuery');
+                console.log('Form submitted');
                 e.preventDefault();
                 handleSubmit(e);
             });
         });
+
+        // Handle file upload
+        async function handleFileUpload(file) {
+            try {
+                console.log('Handling file upload:', file.name);
+                
+                    const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/Upload/SaveFile', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+
+                console.log('Upload response status:', response.status);
+                const result = await response.json();
+                console.log('Upload result:', result);
+
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to upload file');
+                }
+
+                console.log('File uploaded successfully');
+                return result.filePath;
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                toastr.error(error.message || 'Không thể upload file');
+                throw error;
+            }
+        }
 
         async function handleSubmit(event) {
             try {
@@ -241,14 +276,14 @@
                 console.log('=== STARTING FORM SUBMISSION ===');
 
                 // Validate form
-                const tieuDe = document.getElementById('tieuDe').value;
-                const noiDung = quill.root.innerHTML;
+                const tieuDe = document.getElementById('tieuDe').value.trim();
+                const noiDung = quill.root.innerHTML.trim();
                 const trangThai = document.getElementById('trangThai').checked;
                 const fileInput = document.getElementById('fileDinhKem');
                 
                 console.log('Form data:', {
                     tieuDe,
-                    noiDung,
+                    noiDung: noiDung.substring(0, 100) + '...',
                     trangThai,
                     hasFile: fileInput.files.length > 0
                 });
@@ -258,38 +293,27 @@
                     return;
                 }
 
-                let filePath = '';
+                let filePath = currentFile;
                 if (fileInput.files.length > 0) {
-                    const formData = new FormData();
-                    formData.append('file', fileInput.files[0]);
-
-                    console.log('Uploading file...');
-                    const uploadResponse = await fetch('http://localhost:5032/api/TinTuc/upload', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: formData
-                    });
-
-                    console.log('Upload response status:', uploadResponse.status);
-                    if (!uploadResponse.ok) {
-                        throw new Error('Failed to upload file');
+                    try {
+                        filePath = await handleFileUpload(fileInput.files[0]);
+                    } catch (error) {
+                        toastr.error('Không thể upload file');
+                        return;
                     }
-
-                    const uploadResult = await uploadResponse.json();
-                    console.log('Upload result:', uploadResult);
-                    filePath = uploadResult.data;
                 }
 
                 const data = {
                     tieuDe,
                     noiDung,
-                    fileDinhKem: filePath || currentFile,
+                    fileDinhKem: filePath,
                     trangThai
                 };
 
-                console.log('Sending data to API:', data);
+                console.log('Sending data to API:', {
+                    ...data,
+                    noiDung: data.noiDung.substring(0, 100) + '...'
+                });
 
                 const url = currentId ? 
                     `http://localhost:5032/api/TinTuc/${currentId}` : 
@@ -311,7 +335,7 @@
                 if (result.success) {
                     toastr.success('Lưu tin tức thành công');
                     setTimeout(() => {
-                        window.location.reload();
+                    window.location.reload();
                     }, 1500);
                 } else {
                     toastr.error(result.message || 'Không thể lưu tin tức');
@@ -448,7 +472,7 @@
                 if (result.success) {
                     toastr.success('Xóa tin tức thành công');
                     setTimeout(() => {
-                        window.location.reload();
+                    window.location.reload();
                     }, 1500);
                 } else {
                     toastr.error(result.message || 'Không thể xóa tin tức');
@@ -471,4 +495,5 @@
             }
         });
     </script>
+} 
 } 

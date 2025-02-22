@@ -132,10 +132,10 @@ namespace HTSV.FE.Controllers
             var client = _clientFactory.CreateClient();
             var token = HttpContext.Session.GetString("TokenUser");
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
+            Console.WriteLine("Da nhan duoc: "+ model);
             var content = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
             var response = await client.PostAsync("api/ThamGia/diem-danh-gps", content);
-
+            Console.WriteLine("Api tra ve: " + response);
             if (response.IsSuccessStatusCode)
                 return Json(new { success = true });
 
@@ -192,7 +192,7 @@ namespace HTSV.FE.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Member")]
         public async Task<IActionResult> Export(string? maSinhVien = null, int? hoatDongId = null)
         {
             try

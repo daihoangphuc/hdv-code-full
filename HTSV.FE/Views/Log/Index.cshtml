@@ -2,7 +2,15 @@
 @model PaginatedList<HTSV.FE.Models.Log.LogViewModel>
 @{
     ViewData["Title"] = "Lịch sử hoạt động";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    string Admin = Context.Session.GetString("Role") == "Admin" ? "Admin" : "Member";
+    if (User.IsInRole(Admin))
+    {
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
     var isAdmin = User.IsInRole("Admin");
 }
 

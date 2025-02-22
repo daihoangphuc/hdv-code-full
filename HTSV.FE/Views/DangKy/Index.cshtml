@@ -1,3 +1,4 @@
+@using HTSV.FE.Extensions
 @using HTSV.FE.Models.Common
 @using HTSV.FE.Models.HoatDong
 @model PaginatedList<DangKyDTO>
@@ -13,27 +14,29 @@
     {
         Layout = "~/Views/Shared/_Layout.cshtml";
     }
+    var token = Context.Session.GetString("TokenUser");
+    var maSinhVien = Context.Session.GetString("MaSinhVien");
 }
 
 <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
     <div class="mb-1 w-full">
         <div class="mb-4">
-            <nav class="flex mb-4" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <nav class="flex mb-5" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                     <li class="inline-flex items-center">
-                        <a href="/" class="text-gray-700 hover:text-primary">
-                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                        <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
+                            <svg class="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
                             </svg>
                             Trang chủ
                         </a>
                     </li>
-                    <li>
+                    <li aria-current="page">
                         <div class="flex items-center">
-                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                            <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                             </svg>
-                            <span class="text-gray-400">Danh sách đăng ký</span>
+                            <span class="ms-1 text-sm font-medium text-gray-500 md:ms-2">Đăng ký hoạt động</span>
                         </div>
                     </li>
                 </ol>
@@ -41,31 +44,26 @@
             <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl">Danh sách đăng ký hoạt động</h1>
         </div>
         <div class="sm:flex">
-            <div class="flex items-center gap-2">
-                @if (User.IsInRole("Admin"))
-                {
-                    <button onclick="showExportModal()" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-green-600 hover:bg-green-700">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                        Xuất Excel
-                    </button>
-                }
-            </div>
-            <div class="flex items-center ml-auto space-x-2 sm:space-x-3">
-                <form class="sm:pr-3" action="" method="get">
-                    <label for="searchTerm" class="sr-only">Search</label>
-                    <div class="relative w-48 mt-1 sm:w-64 xl:w-96">
-                        <input type="text" name="searchTerm" id="searchTerm" value="@Context.Request.Query["searchTerm"]" 
-                               class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
-                               placeholder="Tìm kiếm...">
-                        <button type="submit" class="absolute top-0 right-0 p-2.5 text-sm font-medium text-white bg-primary rounded-r-lg border border-primary hover:bg-primary-dark focus:ring-4 focus:outline-none focus:ring-primary/50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </button>
+            <div class="items-center hidden mb-3 sm:flex sm:divide-x sm:divide-gray-100 sm:mb-0">
+                <form class="lg:pr-3" action="" method="get">
+                    <label for="search" class="sr-only">Tìm kiếm</label>
+                    <div class="relative mt-1 lg:w-64 xl:w-96">
+                        <input type="text" name="searchTerm" id="search" 
+                               class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" 
+                               placeholder="Tìm kiếm đăng ký">
                     </div>
                 </form>
+        @*         @if (userRole == "Admin")
+                { *@
+                    <div class="flex pl-0 mt-3 space-x-1 sm:pl-2 sm:mt-0">
+                        <button onclick="openExportModal()" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path>
+                            </svg>
+                            Xuất Excel
+                        </button>
+                    </div>
+                @* } *@
             </div>
         </div>
     </div>
@@ -79,9 +77,6 @@
                     <thead class="bg-gray-100">
                         <tr>
                             <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
-                                STT
-                            </th>
-                            <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
                                 Người đăng ký
                             </th>
                             <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
@@ -90,45 +85,50 @@
                             <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
                                 Thời gian đăng ký
                             </th>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase">
-                                    Thao tác
-                                </th>
-                            }
+                            <th scope="col" class="p-4 text-xs font-medium text-right text-gray-500 uppercase">
+                                Thao tác
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @{
-                            var stt = (Model.PageIndex - 1) * Model.PageSize;
-                        }
                         @foreach (var item in Model.Items)
                         {
-                            stt++;
                             <tr class="hover:bg-gray-100">
                                 <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
-                                    @stt
+                                    <div class="text-base font-semibold text-gray-900">@item.TenNguoiDangKy</div>
                                 </td>
-                                <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
-                                    @item.TenNguoiDangKy
-                                </td>
-                                <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
-                                    @item.TenHoatDong
-                                </td>
-                                <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap">
+                                <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap">@item.TenHoatDong</td>
+                                <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap">
                                     @item.ThoiGianDangKy.ToString("dd/MM/yyyy HH:mm")
                                 </td>
-                                @if (User.IsInRole("Admin"))
-                                {
-                                    <td class="p-4 space-x-2 whitespace-nowrap">
-                                        <button onclick="deleteDangKy(@item.Id)" 
-                                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-600 rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-200">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                <td class="p-4 space-x-2 whitespace-nowrap text-right">
+                                    @if (userRole == "Member")
+                                    {
+                                        <button type="button" onclick="diemDanhGPS(@item.HoatDongId)"
+                                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300 me-2">
+                                            <svg class="w-4 h-4 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            Điểm danh GPS
+                                            <div id="loadingDiemDanh_@item.HoatDongId" class="hidden ml-2">
+                                                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            </div>
+                                        </button>
+                                    }
+                                    @if (userRole == "Admin" || User.GetUserId() == item.NguoiDangKyId)
+                                    {
+                                        <button type="button" onclick="deleteDangKy(@item.Id)"
+                                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-600 rounded-lg hover:bg-red-800 focus:ring-4 focus:ring-red-300">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                                             </svg>
                                         </button>
-                                    </td>
-                                }
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -139,234 +139,249 @@
 </div>
 
 <!-- Phân trang -->
-@if (Model.TotalPages > 1)
-{
-    <div class="flex items-center justify-between pt-3">
-        <div class="flex justify-between sm:hidden">
-            @if (Model.HasPreviousPage)
-            {
-                <a href="@Url.Action("Index", new { page = Model.PageIndex - 1, searchTerm = Context.Request.Query["searchTerm"] })" 
-                   class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                    Trước
-                </a>
-            }
-            @if (Model.HasNextPage)
-            {
-                <a href="@Url.Action("Index", new { page = Model.PageIndex + 1, searchTerm = Context.Request.Query["searchTerm"] })" 
-                   class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                    Sau
-                </a>
-            }
-        </div>
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-                <p class="text-sm text-gray-700">
-                    Hiển thị từ <span class="font-medium">@(((Model.PageIndex - 1) * Model.PageSize) + 1)</span>
-                    đến <span class="font-medium">@(((Model.PageIndex - 1) * Model.PageSize) + Model.Items.Count)</span>
-                    trong tổng số <span class="font-medium">@Model.TotalCount</span> kết quả
-                </p>
-            </div>
-            <div>
-                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                    @if (Model.HasPreviousPage)
-                    {
-                        <a href="@Url.Action("Index", new { page = Model.PageIndex - 1, searchTerm = Context.Request.Query["searchTerm"] })" 
-                           class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    }
-                    @for (int i = 1; i <= Model.TotalPages; i++)
-                    {
-                        <a href="@Url.Action("Index", new { page = i, searchTerm = Context.Request.Query["searchTerm"] })" 
-                           class="@(i == Model.PageIndex ? "relative z-10 inline-flex items-center bg-primary px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" : "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0")">
-                            @i
-                        </a>
-                    }
-                    @if (Model.HasNextPage)
-                    {
-                        <a href="@Url.Action("Index", new { page = Model.PageIndex + 1, searchTerm = Context.Request.Query["searchTerm"] })" 
-                           class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                            </svg>
-                        </a>
-                    }
-                </nav>
-            </div>
-        </div>
+<div class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between">
+    <div class="flex items-center mb-4 sm:mb-0">
+        <span class="text-sm font-normal text-gray-500">
+            Trang <span class="font-semibold text-gray-900">@Model.PageIndex</span> / <span class="font-semibold text-gray-900">@Model.TotalPages</span>
+        </span>
     </div>
-}
+    <div class="flex items-center space-x-3">
+        <a href="?page=@(Model.PageIndex - 1)" class="@(Model.HasPreviousPage ? "" : "pointer-events-none opacity-50") inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+            <svg class="w-5 h-5 mr-1 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            Trang trước
+        </a>
+        <a href="?page=@(Model.PageIndex + 1)" class="@(Model.HasNextPage ? "" : "pointer-events-none opacity-50") inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+            Trang sau
+            <svg class="w-5 h-5 ml-1 -mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+        </a>
+    </div>
+</div>
 
-<!-- Modal Xuất Excel -->
-<div id="exportModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+<!-- Export Modal -->
+<div id="exportModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 1000;">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
-            <div class="flex items-center justify-between pb-3">
-                <h3 class="text-lg font-medium text-gray-900">Xuất danh sách đăng ký</h3>
-                <button onclick="closeExportModal()" class="text-gray-400 hover:text-gray-500">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="mt-4 space-y-4">
-                <div>
-                    <label for="hoatDongId" class="block text-sm font-medium text-gray-700 mb-1">Hoạt động</label>
-                    <select id="hoatDongId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
-                        <option value="">-- Chọn hoạt động --</option>
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Xuất danh sách đăng ký</h3>
+            <div class="mt-2">
+                <div class="mb-4">
+                    <label for="hoatDongSelect" class="block text-sm font-medium text-gray-700 mb-2">Chọn hoạt động</label>
+                    <select id="hoatDongSelect" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5">
+                        <option value="">Tất cả hoạt động</option>
                     </select>
                 </div>
-                <div>
-                    <label for="maSinhVien" class="block text-sm font-medium text-gray-700 mb-1">Mã sinh viên</label>
-                    <input type="text" id="maSinhVien" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" placeholder="Nhập mã sinh viên">
-                </div>
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button onclick="closeExportModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">
-                        Hủy
-                    </button>
-                    <button onclick="confirmExport()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
-                        Xuất Excel
-                    </button>
-                </div>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeExportModal()" class="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:ring-4 focus:ring-gray-300">
+                    Hủy
+                </button>
+                <button onclick="confirmExport()" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+                    Xuất Excel
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <!-- Add toastr library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    
+
     <script>
-        // Cấu hình toastr
+        const token = '@token';
+        const maSinhVien = '@maSinhVien';
+
+        // Configure toastr
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
             "positionClass": "toast-top-right",
+        };
+
+        function deleteDangKy(id) {
+            if (confirm('Bạn có chắc chắn muốn hủy đăng ký này?')) {
+                fetch(`/DangKy/Delete/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        toastr.error(data.message || 'Không thể hủy đăng ký');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Đã xảy ra lỗi khi hủy đăng ký');
+                });
+            }
         }
 
-        function showExportModal() {
+        function diemDanhGPS(hoatDongId) {
+            if (!navigator.geolocation) {
+                toastr.error('Trình duyệt của bạn không hỗ trợ định vị GPS');
+                return;
+            }
+
+            console.log('Bắt đầu quá trình điểm danh GPS cho hoạt động ID:', hoatDongId);
+            console.log('Mã sinh viên:', maSinhVien);
+
+            const loadingElement = document.getElementById(`loadingDiemDanh_${hoatDongId}`);
+            const button = loadingElement.parentElement;
+            button.disabled = true;
+            loadingElement.classList.remove('hidden');
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    try {
+                        // Log detailed GPS coordinates
+                        console.log('Tọa độ GPS được lấy từ thiết bị:');
+                        console.log('- Vĩ độ (latitude):', position.coords.latitude);
+                        console.log('- Kinh độ (longitude):', position.coords.longitude);
+                        console.log('- Độ chính xác:', position.coords.accuracy, 'mét');
+                        console.log('- Thời gian lấy:', new Date(position.timestamp).toLocaleString());
+
+                        // Print coordinates to terminal using fetch
+                        fetch('/api/PrintCoordinates', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                timestamp: new Date().toLocaleString()
+                            })
+                        });
+
+                        const requestData = {
+                            maSinhVien: maSinhVien,
+                            hoatDongId: hoatDongId,
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+
+                        console.log('Dữ liệu JSON gửi đến API:', JSON.stringify(requestData, null, 2));
+
+                        const response = await fetch('http://localhost:5032/api/ThamGia/diem-danh-gps', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify(requestData)
+                        });
+
+                        const result = await response.json();
+                        console.log('Phản hồi từ API:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            data: result
+                        });
+
+                        if (result.success) {
+                            console.log('Điểm danh thành công:', result.message);
+                            toastr.success('Điểm danh thành công');
+                        } else {
+                            console.error('Điểm danh thất bại:', result.message);
+                            toastr.error(result.message || 'Điểm danh thất bại');
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi gọi API:', error);
+                        toastr.error('Đã xảy ra lỗi khi điểm danh');
+                    } finally {
+                        button.disabled = false;
+                        loadingElement.classList.add('hidden');
+                        console.log('Kết thúc quá trình điểm danh GPS');
+                    }
+                },
+                (error) => {
+                    console.error('Lỗi khi lấy vị trí GPS:', {
+                        code: error.code,
+                        message: error.message
+                    });
+                    toastr.error('Không thể lấy vị trí GPS. Vui lòng kiểm tra quyền truy cập vị trí của trình duyệt');
+                    button.disabled = false;
+                    loadingElement.classList.add('hidden');
+                },
+                {
+                    enableHighAccuracy: true, // Yêu cầu độ chính xác cao nhất có thể
+                    timeout: 10000,           // Timeout sau 10 giây
+                    maximumAge: 0             // Không sử dụng cache
+                }
+            );
+        }
+
+        // Export Modal Functions
+        function openExportModal() {
             document.getElementById('exportModal').classList.remove('hidden');
             loadHoatDongs();
         }
 
-        function loadHoatDongs() {
-            fetch('@Url.Action("GetHoatDongs")', {
-                headers: {
-                    'Authorization': 'Bearer ' + '@Context.Session.GetString("TokenUser")'
-                }
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    const select = document.getElementById('hoatDongId');
-                    // Clear existing options except the first one
-                    select.innerHTML = '<option value="">-- Chọn hoạt động --</option>';
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.add('hidden');
+        }
+
+        async function loadHoatDongs() {
+            try {
+                const response = await fetch('/DangKy/GetHoatDongs', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const select = document.getElementById('hoatDongSelect');
+                    select.innerHTML = '<option value="">Tất cả hoạt động</option>';
                     
-                    // Add new options
-                    result.data.forEach(hoatDong => {
+                    data.data.forEach(hoatDong => {
                         const option = document.createElement('option');
                         option.value = hoatDong.id;
                         option.textContent = hoatDong.tenHoatDong;
                         select.appendChild(option);
                     });
-                } else {
-                    toastr.error(result.message || 'Không thể tải danh sách hoạt động');
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                toastr.error('Đã xảy ra lỗi khi tải danh sách hoạt động');
-            });
-        }
-
-        function closeExportModal() {
-            document.getElementById('exportModal').classList.add('hidden');
-            // Clear inputs
-            document.getElementById('hoatDongId').value = '';
-            document.getElementById('maSinhVien').value = '';
+            } catch (error) {
+                console.error('Error loading hoat dongs:', error);
+                toastr.error('Không thể tải danh sách hoạt động');
+            }
         }
 
         function confirmExport() {
-            const hoatDongId = document.getElementById('hoatDongId').value;
-            const maSinhVien = document.getElementById('maSinhVien').value;
-
-            if (!hoatDongId && !maSinhVien) {
-                toastr.warning('Vui lòng nhập ít nhất một điều kiện để xuất danh sách');
-                return;
-            }
-
-            let url = '@Url.Action("Export", "DangKy")';
-            const params = new URLSearchParams();
+            const hoatDongId = document.getElementById('hoatDongSelect').value;
+            let url = '/DangKy/Export';
             
-            if (hoatDongId) {
-                params.append('hoatDongId', hoatDongId);
-            }
+            const params = new URLSearchParams();
             if (maSinhVien) {
                 params.append('maSinhVien', maSinhVien);
             }
-
+            if (hoatDongId) {
+                params.append('hoatDongId', hoatDongId);
+            }
+            
             if (params.toString()) {
                 url += '?' + params.toString();
             }
 
-            // Download file
-            fetch(url, {
-                headers: {
-                    'Authorization': 'Bearer ' + '@Context.Session.GetString("TokenUser")'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "DanhSachDangKy.xlsx";
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                closeExportModal();
-                toastr.success('Xuất file thành công');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                toastr.error('Có lỗi xảy ra khi xuất file');
-            });
-        }
-
-        function deleteDangKy(id) {
-            if (!confirm('Bạn có chắc chắn muốn xóa đăng ký này?')) {
-                return;
-            }
-
-            fetch(`/DangKy/Delete/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': 'Bearer ' + '@Context.Session.GetString("TokenUser")'
-                }
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    toastr.success('Xóa đăng ký thành công');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    toastr.error(result.message || 'Không thể xóa đăng ký');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                toastr.error('Đã xảy ra lỗi khi xóa đăng ký');
-            });
+            // Create a hidden anchor element to trigger the download
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            closeExportModal();
         }
     </script>
 } 

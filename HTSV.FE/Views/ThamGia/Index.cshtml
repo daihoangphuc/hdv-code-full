@@ -44,7 +44,7 @@
 
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">@ViewData["Title"]</h1>
-            @if (userRole == "Admin")
+            @if (userRole == "Admin" || userRole == "Member")
             {
                 <button onclick="showExportModal()" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark">
                     Xuất Excel
@@ -53,16 +53,83 @@
         </div>
 
         <!-- Search Section -->
-        <div class="mb-6">
-            <div class="flex gap-4">
-                <input type="text" id="searchInput" placeholder="Tìm kiếm..." 
-                       class="flex-1 border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
-                <button onclick="search()" class="bg-gray-100 px-4 py-2 rounded hover:bg-gray-200">
-                    Tìm kiếm
-                </button>
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Tìm kiếm..." />
+                <!-- Biểu tượng tìm kiếm -->
+                <svg class="search-icon" viewBox="0 0 24 24">
+                    <path d="M21 21l-4.35-4.35m1.35-4.65a7 7 0 11-14 0 7 7 0 0114 0z"
+                          stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                </svg>
+                <!-- Nút tìm kiếm -->
+                <button onclick="search()">Tìm kiếm</button>
             </div>
         </div>
 
+        <style>
+            /* Container chính căn giữa phần tìm kiếm */
+            .search-container {
+                margin-bottom: 1.5rem;
+                display: flex;
+                justify-content: center;
+            }
+
+            /* Hộp chứa input và button */
+            .search-box {
+                position: relative;
+                width: 100%;
+                max-width: 400px;
+            }
+
+                /* Style cho input */
+                .search-box input {
+                    width: 100%;
+                    padding: 0.75rem 1rem 0.75rem 2.5rem; /* Để dành chỗ cho icon bên trái */
+                    font-size: 0.875rem;
+                    color: #374151; /* text-gray-700 */
+                    background-color: #fff;
+                    border: 1px solid #d1d5db; /* border-gray-300 */
+                    border-radius: 0.5rem;
+                    transition: border-color 0.3s, box-shadow 0.3s;
+                }
+
+                    .search-box input:focus {
+                        outline: none;
+                        border-color: #3b82f6; /* primary color (blue-500) */
+                        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+                    }
+
+                /* Icon tìm kiếm bên trái */
+                .search-box .search-icon {
+                    position: absolute;
+                    top: 50%;
+                    left: 0.75rem;
+                    transform: translateY(-50%);
+                    width: 1.25rem;
+                    height: 1.25rem;
+                    fill: #6b7280; /* text-gray-500 */
+                    pointer-events: none;
+                }
+
+                /* Nút tìm kiếm bên trong input */
+                .search-box button {
+                    position: absolute;
+                    right: 0.5rem;
+                    bottom: 0.5rem;
+                    background-color: #3b82f6;
+                    color: #ffffff;
+                    border: none;
+                    border-radius: 0.375rem;
+                    padding: 0.5rem 1rem;
+                    font-size: 0.875rem;
+                    cursor: pointer;
+                    transition: background-color 0.3s;
+                }
+
+                    .search-box button:hover {
+                        background-color: #2563eb;
+                    }
+        </style>
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white">
@@ -142,7 +209,7 @@
     </div>
 </div>
 
-@if (userRole == "Admin")
+@if (userRole == "Admin" || userRole == "Member")
 {
     <!-- Export Modal -->
     <div id="exportModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
@@ -230,14 +297,20 @@
                 params.push(`hoatDongId=${hoatDongId}`);
             }
             if (maSinhVien) {
-                params.push(`maSinhVien=${maSinhVien}`);
+                params.push(`maSinhVien=${encodeURIComponent(maSinhVien)}`);
             }
 
             if (params.length > 0) {
                 url += '?' + params.join('&');
             }
 
-            window.location.href = url;
+            // Tải file bằng cách tạo một thẻ a ẩn và kích hoạt sự kiện click
+            const link = document.createElement('a');
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
             closeExportModal();
         }
 

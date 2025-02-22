@@ -2,10 +2,19 @@
 @model PaginatedList<HTSV.FE.Models.PhanCong.PhanCongViewModel>
 @{
     ViewData["Title"] = "Quản lý phân công";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    string Admin = Context.Session.GetString("Role") == "Admin" ? "Admin" : "Member";
+    if (User.IsInRole(Admin))
+    {
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
     var isAdmin = User.IsInRole("Admin");
     var isCanBo = User.IsInRole("CanBo");
     var canManage = isAdmin || isCanBo;
+    var token = Context.Session.GetString("TokenUser");
 }
 
 <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
@@ -270,9 +279,7 @@
         </div>
     </div>
 }
-@{
-    var tokenUser = Context.Session.GetString("TokenUser");
-}
+
 @section Scripts {
     <script>
         let deleteId = 0;
@@ -294,8 +301,8 @@
             try {
                 const response = await fetch('http://localhost:5032/api/NguoiDung?PageSize=100', {
                     headers: {
-                        'Authorization': `Bearer @tokenUser`,
-                        'Accept': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -326,8 +333,8 @@
 
                 const response = await fetch('http://localhost:5032/api/NhiemVu?PageSize=100', {
                     headers: {
-                        'Authorization': `Bearer @tokenUser`,
-                        'Accept': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -420,7 +427,8 @@
                 const response = await fetch(id ? `/PhanCong/Update/${id}` : '/PhanCong/Create', {
                     method: id ? 'PUT' : 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(data)
                 });
@@ -455,7 +463,8 @@
                 const response = await fetch('/PhanCong/PhanCongNhom', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(data)
                 });
@@ -477,7 +486,10 @@
 
             try {
                 const response = await fetch(`/PhanCong/Delete/${deleteId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
 
                 const result = await response.json();

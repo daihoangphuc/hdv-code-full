@@ -21,196 +21,532 @@
     }
 
     var daDangKy = ViewBag.DaDangKy as bool? ?? false;
-    var mssv = Context.Session.GetString("MaSinhVien");
-    var token = Context.Session.GetString("TokenUser");
+    var maSinhVien = Context.Session.GetString("MaSinhVien");
+    var tokenValue = Context.Session.GetString("TokenUser");
+    var userRole = User.IsInRole("Admin") ? "Admin" : "Member";
 }
 
-<div class="container mx-auto px-4 py-8">
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <!-- Ảnh bìa -->
-        @if (!string.IsNullOrEmpty(Model.AnhBia))
-        {
-            <img src="@Model.AnhBia" alt="@Model.TenHoatDong" class="w-full h-[400px] object-cover">
-        }
-
-        <div class="p-6">
-            <!-- Breadcrumb -->
-            <nav class="flex mb-4" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
                     <li class="inline-flex items-center">
-                        <a href="/" class="text-gray-700 hover:text-primary">
-                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
+                    <svg class="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
                             </svg>
                             Trang chủ
                         </a>
                     </li>
                     <li>
                         <div class="flex items-center">
-                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="text-gray-400">Chi tiết hoạt động</span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
+                    <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                    </svg>
+                    <a href="/HoatDong" class="ms-1 text-sm font-medium text-gray-700 hover:text-primary md:ms-2">Hoạt động</a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                    </svg>
+                    <span class="ms-1 text-sm font-medium text-gray-500 md:ms-2">Chi tiết</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
 
-            <!-- Tiêu đề và thông tin cơ bản -->
-            <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-900 mb-4">@Model.TenHoatDong</h1>
-                <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">@Model.TenHoatDong</h1>
+        <div class="flex items-center space-x-3">
+            @if (!User.IsInRole("Admin") && !User.IsInRole("CanBo"))
+            {
+                @if (!daDangKy)
+                {
+                    <button id="btnDangKy" onclick="dangKyHoatDong(@Model.Id)" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+                        <span>Đăng ký tham gia</span>
+                        <div id="loadingDangKy" class="hidden ml-2">
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </button>
+                }
+                else
+                {
+                    <button id="btnHuyDangKy" onclick="huyDangKy(@ViewBag.DangKyId)" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300">
+                        <span>Hủy đăng ký</span>
+                        <div id="loadingHuyDangKy" class="hidden ml-2">
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </button>
+                }
+            }
+            <a href="@Url.Action("Index")" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-primary/50">
+                <svg class="w-4 h-4 mr-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0 4 4M1 5l4-4"/>
+                </svg>
+                Quay lại
+            </a>
+            @if (userRole == "Admin")
+            {
+                <button type="button" onclick="showEditModal(@Model.Id)" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 focus:ring-4 focus:ring-yellow-300">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                        <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
+                    </svg>
+                    Chỉnh sửa
+                </button>
+            }
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="bg-white rounded-lg shadow-sm">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+            <!-- Thông tin chính -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Mô tả -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-3">Mô tả hoạt động</h2>
+                    <p class="text-gray-600">@Model.MoTa</p>
+</div>
+
+                <!-- Thông tin chi tiết -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Thời gian -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 class="text-sm font-medium text-gray-900">Thời gian</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <span class="font-medium mr-2">Bắt đầu:</span>
+                                @Model.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600">
+                                <span class="font-medium mr-2">Kết thúc:</span>
+                                @Model.ThoiGianKetThuc.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Địa điểm -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <h3 class="text-sm font-medium text-gray-900">Địa điểm</h3>
+                        </div>
+                        <p class="text-sm text-gray-600">@Model.DiaDiem</p>
+                    </div>
+
+                    <!-- Số lượng -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <h3 class="text-sm font-medium text-gray-900">Số lượng tham gia</h3>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Đã đăng ký:</span>
+                            <span class="text-sm font-medium text-gray-900">@Model.SoLuongDangKy/@Model.SoLuongToiDa</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: @(((double)Model.SoLuongDangKy / Model.SoLuongToiDa) * 100)%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin học kỳ -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <h3 class="text-sm font-medium text-gray-900">Thông tin học kỳ</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <span class="font-medium mr-2">Học kỳ:</span>
+                                @Model.HocKy
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600">
+                                <span class="font-medium mr-2">Năm học:</span>
+                                @Model.NamHoc
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trạng thái và công khai -->
+                <div class="flex items-center space-x-6">
+                    @{
+                        var statusClass = Model.TrangThai switch
+                        {
+                            0 => "bg-yellow-100 text-yellow-800",
+                            1 => "bg-green-100 text-green-800",
+                            2 => "bg-blue-100 text-blue-800",
+                            3 => "bg-red-100 text-red-800",
+                            _ => "bg-gray-100 text-gray-800"
+                        };
+                        var statusText = Model.TrangThai switch
+                        {
+                            0 => "Chưa diễn ra",
+                            1 => "Đang diễn ra",
+                            2 => "Đã hoàn thành",
+                            3 => "Đã hủy",
+                            _ => "Không xác định"
+                        };
+                    }
                     <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                        </svg>
-                        <span>Thời gian: @Model.ThoiGianBatDau.ToString("dd/MM/yyyy HH:mm") - @Model.ThoiGianKetThuc.ToString("dd/MM/yyyy HH:mm")</span>
+                        <span class="text-sm font-medium text-gray-900 mr-2">Trạng thái:</span>
+                        <span class="@statusClass text-sm font-medium px-2.5 py-0.5 rounded-full">
+                            @statusText
+                        </span>
                     </div>
                     <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                        </svg>
-                        <span>Địa điểm: @Model.DiaDiem</span>
-                    </div>
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                        </svg>
-                        <span>Số lượng: @Model.SoLuongToiDa người</span>
+                        <span class="text-sm font-medium text-gray-900 mr-2">Công khai:</span>
+                        @if (Model.CongKhai)
+                        {
+                            <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full">Có</span>
+                        }
+                        else
+                        {
+                            <span class="bg-red-100 text-red-800 text-sm font-medium px-2.5 py-0.5 rounded-full">Không</span>
+                        }
                     </div>
                 </div>
             </div>
 
-            <!-- Mô tả -->
-            <div class="prose max-w-none mb-6">
-                <h2 class="text-xl font-semibold mb-2">Mô tả hoạt động</h2>
-                @Html.Raw(Model.MoTa)
-            </div>
-
-            <!-- Nút đăng ký/hủy đăng ký -->
-            <div class="mt-6 flex justify-center">
-                @if (User.IsInRole("Member"))
+            <!-- Bản đồ và thông tin bổ sung -->
+            <div class="lg:col-span-1">
+                @if (!string.IsNullOrEmpty(Model.ToaDo))
                 {
-                    @if (daDangKy)
-                    {
-                        <button onclick="huyDangKy(@ViewBag.DangKyId)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
-                            Hủy đăng ký
-                        </button>
-                    }
-                    else
-                    {
-                        <button onclick="dangKy(@Model.Id)" class="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded">
-                            Đăng ký tham gia
-                        </button>
-                    }
+                    <div class="bg-gray-50 rounded-lg overflow-hidden">
+                        <div class="p-4">
+                            <h3 class="text-sm font-medium text-gray-900 mb-3">Vị trí trên bản đồ</h3>
+                            <div id="map" class="w-full h-[400px] rounded-lg"></div>
+        </div>
+                </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.FileMinhChung))
+                {
+                    <div class="mt-6 bg-gray-50 rounded-lg p-4">
+                        <h3 class="text-sm font-medium text-gray-900 mb-3">File minh chứng</h3>
+                            <a href="@Model.FileMinhChung" target="_blank" 
+                           class="inline-flex items-center text-sm text-primary hover:text-primary-dark">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            Tải xuống minh chứng
+                            </a>
+                    </div>
                 }
             </div>
         </div>
     </div>
 </div>
 
-@if (User.IsInRole("Admin"))
+@if (userRole == "Admin")
 {
-    <div class="mt-4">
-        @await Html.PartialAsync("_DetailsModals", Model)
+    <!-- Modal Edit -->
+    <div id="activityModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative w-full max-w-2xl max-h-full">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow">
+                <!-- Modal header -->
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                    <h3 class="text-xl font-semibold text-gray-900">
+                        Cập nhật hoạt động
+                    </h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="activityModal">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                        <span class="sr-only">Đóng modal</span>
+                    </button>
+                </div>
+
+                <!-- Modal body -->
+                <form id="activityForm" class="p-4 md:p-5">
+                    <input type="hidden" id="activityId" value="@Model.Id" />
+                    <div class="grid gap-4 mb-4 grid-cols-2">
+                        <div class="col-span-2">
+                            <label for="tenHoatDong" class="block mb-2 text-sm font-medium text-gray-900">Tên hoạt động</label>
+                            <input type="text" id="tenHoatDong" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required maxlength="200">
+                        </div>
+                        <div class="col-span-2">
+                            <label for="moTa" class="block mb-2 text-sm font-medium text-gray-900">Mô tả</label>
+                            <textarea id="moTa" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-primary focus:border-primary" maxlength="1000"></textarea>
+                        </div>
+                        <div>
+                            <label for="thoiGianBatDau" class="block mb-2 text-sm font-medium text-gray-900">Thời gian bắt đầu</label>
+                            <input type="datetime-local" id="thoiGianBatDau" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div>
+                            <label for="thoiGianKetThuc" class="block mb-2 text-sm font-medium text-gray-900">Thời gian kết thúc</label>
+                            <input type="datetime-local" id="thoiGianKetThuc" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                        </div>
+                        <div>
+                            <label for="diaDiem" class="block mb-2 text-sm font-medium text-gray-900">Địa điểm</label>
+                            <input type="text" id="diaDiem" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required maxlength="200">
+                        </div>
+                        <div>
+                            <label for="soLuongToiDa" class="block mb-2 text-sm font-medium text-gray-900">Số lượng tối đa</label>
+                            <input type="number" id="soLuongToiDa" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required min="1">
+                        </div>
+                        <div>
+                            <label for="hocKy" class="block mb-2 text-sm font-medium text-gray-900">Học kỳ</label>
+                            <select id="hocKy" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required>
+                                <option value="1">Học kỳ 1</option>
+                                <option value="2">Học kỳ 2</option>
+                                <option value="3">Học kỳ 3</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="namHoc" class="block mb-2 text-sm font-medium text-gray-900">Năm học</label>
+                            <input type="text" id="namHoc" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5" required pattern="\d{4}-\d{4}" placeholder="2023-2024">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="congKhai" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                <span class="ms-3 text-sm font-medium text-gray-900">Công khai</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button type="submit" class="text-white inline-flex items-center bg-primary hover:bg-primary-dark focus:ring-4 focus:outline-none focus:ring-primary/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                            <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                            Lưu thay đổi
+                        </button>
+                        <button type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary/50 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900" data-modal-hide="activityModal">
+                            Hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 }
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-
+    @if (!string.IsNullOrEmpty(Model.ToaDo))
+    {
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAyqb6hz7-9oSLfvk7yn3lGfUnFbFIkUTQ"></script>
     <script>
-        // Lấy token và mã sinh viên từ biến Razor
-        const token = '@Html.Raw(token)';
-        const maSinhVien = '@Html.Raw(mssv)';
+            function initMap() {
+                const coordinates = '@Model.ToaDo'.split(',');
+                const lat = parseFloat(coordinates[0]);
+                const lng = parseFloat(coordinates[1]);
+                const location = { lat: lat, lng: lng };
+                
+                const map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 15,
+                    center: location
+                });
+                
+                new google.maps.Marker({
+                    position: location,
+                    map: map,
+                    title: '@Model.DiaDiem'
+                });
+            }
+            
+            window.onload = initMap;
+        </script>
+    }
+    
+    <script>
+        const token = '@tokenValue';
+        const mssv = '@maSinhVien';
         
-        console.log('Token:', token);
-        console.log('Mã sinh viên:', maSinhVien);
-
-        // Cấu hình toastr
-        toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "timeOut": "3000"
-        };
-
-        function dangKy(hoatDongId) {
-            if (!maSinhVien) {
-                toastr.error('Vui lòng đăng nhập để đăng ký hoạt động');
-                return;
-            }
-
-            if (!confirm('Bạn có chắc chắn muốn đăng ký tham gia hoạt động này?')) {
-                return;
-            }
-
-            const data = {
-                maSinhVien: maSinhVien,
-                hoatDongId: hoatDongId
-            };
-            console.log('Sending data:', data);
-
-            $.ajax({
-                url: 'http://localhost:5032/api/DangKy',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                data: JSON.stringify(data),
-                success: function(response) {
-                    console.log('Response:', response);
-                    if (response.success) {
-                        toastr.success('Đăng ký thành công');
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        toastr.error(response.message || response.error || 'Không thể đăng ký hoạt động');
+        async function checkDangKyStatus() {
+            try {
+                const response = await fetch(`http://localhost:5032/api/DangKy/nguoi-dang-ky?maSinhVien=${mssv}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.log('Error details:', {
-                        status: status,
-                        error: error,
-                        response: xhr.responseText
-                    });
-                    toastr.error('Đã xảy ra lỗi khi đăng ký hoạt động');
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        const dangKy = result.data.find(dk => dk.hoatDongId === @Model.Id);
+                        const buttonContainer = document.querySelector('.flex.items-center.space-x-3');
+                        if (dangKy) {
+                            // Đã đăng ký - hiển thị nút hủy đăng ký
+                            buttonContainer.innerHTML = `
+                                <button id="btnHuyDangKy" onclick="huyDangKy(${dangKy.id})" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300">
+                                    <span>Hủy đăng ký</span>
+                                    <div id="loadingHuyDangKy" class="hidden ml-2">
+                                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                </button>`;
+                        } else {
+                            // Chưa đăng ký - hiển thị nút đăng ký
+                            buttonContainer.innerHTML = `
+                                <button id="btnDangKy" onclick="dangKyHoatDong(@Model.Id)" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+                                    <span>Đăng ký tham gia</span>
+                                    <div id="loadingDangKy" class="hidden ml-2">
+                                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                </button>`;
+                        }
+                    }
                 }
-            });
+            } catch (error) {
+                console.error('Error checking registration status:', error);
+            }
         }
 
-        function huyDangKy(dangKyId) {
-            if (!confirm('Bạn có chắc chắn muốn hủy đăng ký tham gia hoạt động này?')) {
+        async function dangKyHoatDong(hoatDongId) {
+            const btnDangKy = document.getElementById('btnDangKy');
+            const loadingDangKy = document.getElementById('loadingDangKy');
+            const buttonContainer = document.querySelector('.flex.items-center.space-x-3');
+            
+            try {
+                btnDangKy.disabled = true;
+                btnDangKy.querySelector('span').textContent = 'Đang đăng ký...';
+                loadingDangKy.classList.remove('hidden');
+                
+                const response = await fetch('http://localhost:5032/api/DangKy', {
+                    method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                        },
+                    body: JSON.stringify({
+                        maSinhVien: mssv,
+                        hoatDongId: hoatDongId
+                    })
+                    });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        const dangKyId = result.data.id;
+                        // Cập nhật UI ngay lập tức
+                        buttonContainer.innerHTML = `
+                            <button id="btnHuyDangKy" onclick="huyDangKy(${dangKyId})" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300">
+                                <span>Hủy đăng ký</span>
+                                <div id="loadingHuyDangKy" class="hidden ml-2">
+                                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            </button>`;
+                        toastr.success('Đăng ký hoạt động thành công');
+                    } else {
+                        toastr.error('Không thể lấy thông tin đăng ký');
+                    }
+                } else {
+                    const error = await response.json();
+                    toastr.error(error.message || 'Đã có lỗi xảy ra khi đăng ký hoạt động');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                toastr.error('Đã có lỗi xảy ra khi đăng ký hoạt động');
+            }
+        }
+
+        async function huyDangKy(dangKyId) {
+            if (!confirm('Bạn có chắc chắn muốn hủy đăng ký hoạt động này?')) {
                 return;
             }
 
-            $.ajax({
-                url: `http://localhost:5032/api/DangKy/${dangKyId}`,
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                success: function(response) {
-                    if (response.success) {
-                        toastr.success('Hủy đăng ký thành công');
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        toastr.error(response.message || response.error || 'Không thể hủy đăng ký hoạt động');
+            const btnHuyDangKy = document.getElementById('btnHuyDangKy');
+            const loadingHuyDangKy = document.getElementById('loadingHuyDangKy');
+            const buttonContainer = document.querySelector('.flex.items-center.space-x-3');
+            
+            try {
+                btnHuyDangKy.disabled = true;
+                btnHuyDangKy.querySelector('span').textContent = 'Đang hủy đăng ký...';
+                loadingHuyDangKy.classList.remove('hidden');
+                
+                const response = await fetch(`http://localhost:5032/api/DangKy/${dangKyId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.log('Error details:', {
-                        status: status,
-                        error: error,
-                        response: xhr.responseText
-                    });
-                    toastr.error('Đã xảy ra lỗi khi hủy đăng ký hoạt động');
+                });
+
+                if (response.ok) {
+                    // Cập nhật UI ngay lập tức
+                    buttonContainer.innerHTML = `
+                        <button id="btnDangKy" onclick="dangKyHoatDong(@Model.Id)" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+                            <span>Đăng ký tham gia</span>
+                            <div id="loadingDangKy" class="hidden ml-2">
+                                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        </button>`;
+                    toastr.success('Hủy đăng ký hoạt động thành công');
+                } else {
+                    const error = await response.json();
+                    toastr.error(error.message || 'Đã có lỗi xảy ra khi hủy đăng ký hoạt động');
                 }
-            });
+            } catch (error) {
+                console.error('Error:', error);
+                toastr.error('Đã có lỗi xảy ra khi hủy đăng ký hoạt động');
+            }
+        }
+
+        // Kiểm tra trạng thái đăng ký khi trang được tải
+        window.onload = function() {
+            if (typeof initMap === 'function') {
+                initMap();
+            }
+            checkDangKyStatus();
         }
     </script>
+}
+
+@functions {
+    string GetStatusBadgeClass(int status)
+    {
+        return status switch
+        {
+            0 => "badge-secondary", // Chưa diễn ra
+            1 => "badge-primary",   // Đang diễn ra
+            2 => "badge-success",   // Đã hoàn thành
+            3 => "badge-danger",    // Đã hủy
+            _ => "badge-info"
+        };
+    }
+
+    string GetStatusText(int status)
+    {
+        return status switch
+        {
+            0 => "Chưa diễn ra",
+            1 => "Đang diễn ra",
+            2 => "Đã hoàn thành",
+            3 => "Đã hủy",
+            _ => "Không xác định"
+        };
+    }
 } 

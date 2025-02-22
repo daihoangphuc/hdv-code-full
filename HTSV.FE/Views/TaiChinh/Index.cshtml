@@ -3,7 +3,15 @@
 @model PaginatedList<TaiChinhViewModel>
 @{
     ViewData["Title"] = "Quản lý tài chính";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    string Admin = Context.Session.GetString("Role") == "Admin" ? "Admin" : "Member";
+    if (User.IsInRole(Admin))
+    {
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
     var isAdmin = User.IsInRole("Admin");
     var isCanBo = User.IsInRole("CanBo");
     var canManage = isAdmin || isCanBo;
