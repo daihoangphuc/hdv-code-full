@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HTSV.FE")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7585a9cd5b92336c7278e7c8e0e8ba8d27f84642")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6a648ecde174a4d4745c9f3cf80ecbfab999bfd3")]
 [assembly: System.Reflection.AssemblyProductAttribute("HTSV.FE")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HTSV.FE")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

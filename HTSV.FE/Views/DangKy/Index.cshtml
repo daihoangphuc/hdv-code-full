@@ -118,6 +118,19 @@
                                                 </svg>
                                             </div>
                                         </button>
+                                        <button type="button" onclick="diemDanhKhuonMat(@item.HoatDongId)"
+                                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300">
+                                            <svg class="w-4 h-4 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                            </svg>
+                                            Điểm danh khuôn mặt
+                                            <div id="loadingDiemDanhKhuonMat_@item.HoatDongId" class="hidden ml-2">
+                                                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            </div>
+                                        </button>
                                     }
                                     @if (userRole == "Admin" || User.GetUserId() == item.NguoiDangKyId)
                                     {
@@ -180,6 +193,39 @@
                 </button>
                 <button onclick="confirmExport()" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
                     Xuất Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Face Recognition Modal -->
+<div id="faceRecognitionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 1000;">
+    <div class="relative top-20 mx-auto p-5 border w-[640px] shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Điểm danh bằng khuôn mặt</h3>
+            <div class="mt-2">
+                <div class="relative">
+                    <video id="video" class="w-full h-[480px] bg-black" autoplay></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                    <div id="loadingIndicator" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                        <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div id="status" class="mt-4 text-center text-gray-600"></div>
+            </div>
+            <div class="flex justify-end mt-4 space-x-3">
+                <button onclick="closeFaceRecognitionModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:ring-4 focus:ring-gray-300">
+                    Hủy
+                </button>
+                <button id="snapButton" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark focus:ring-4 focus:ring-primary-light">
+                    Chụp ảnh
+                </button>
+                <button id="confirmButton" style="display: none;" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300">
+                    Xác nhận
                 </button>
             </div>
         </div>
@@ -382,6 +428,168 @@
             document.body.removeChild(a);
             
             closeExportModal();
+        }
+
+        let currentHoatDongId = null;
+        let isProcessing = false;
+        let detectedName = null;
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snapButton = document.getElementById('snapButton');
+        const confirmButton = document.getElementById('confirmButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusDiv = document.getElementById('status');
+
+        function diemDanhKhuonMat(hoatDongId) {
+            currentHoatDongId = hoatDongId;
+            openFaceRecognitionModal();
+        }
+
+        function openFaceRecognitionModal() {
+            document.getElementById('faceRecognitionModal').classList.remove('hidden');
+            startVideo();
+        }
+
+        function closeFaceRecognitionModal() {
+            document.getElementById('faceRecognitionModal').classList.add('hidden');
+            stopVideo();
+            resetModal();
+        }
+
+        function resetModal() {
+            confirmButton.style.display = 'none';
+            statusDiv.textContent = '';
+            isProcessing = false;
+            detectedName = null;
+        }
+
+        async function startVideo() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                updateUI(false, 'Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.');
+            }
+        }
+
+        function stopVideo() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function updateUI(success, message) {
+            statusDiv.textContent = message;
+            statusDiv.className = success ? 'text-green-600' : 'text-red-600';
+            loadingIndicator.style.display = 'none';
+            snapButton.disabled = false;
+            if (success) {
+                confirmButton.style.display = 'block';
+            }
+        }
+
+        snapButton.addEventListener('click', handleSnapClick);
+        confirmButton.addEventListener('click', handleConfirmClick);
+
+        async function handleSnapClick() {
+            if (isProcessing) return;
+            isProcessing = true;
+            snapButton.disabled = true;
+            loadingIndicator.style.display = 'flex';
+
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            try {
+                const predictResponse = await fetch('https://api-detect-face-88e525469972.herokuapp.com/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+
+                if (!predictResponse.ok) {
+                    throw new Error('Không nhận diện được khuôn mặt.');
+                }
+
+                const predictData = await predictResponse.json();
+
+                if (predictData.name) {
+                    detectedName = predictData.name;
+                    updateUI(true, `Nhận diện thành công! Tên: ${detectedName}`);
+                    confirmButton.style.display = 'block';
+                } else {
+                    updateUI(false, 'Không nhận diện được khuôn mặt.');
+                }
+            } catch (error) {
+                updateUI(false, `Lỗi: ${error.message}`);
+            }
+        }
+
+        async function handleConfirmClick() {
+            if (!detectedName || !currentHoatDongId) {
+                toastr.error('Thiếu thông tin điểm danh');
+                return;
+            }
+
+            // Lấy token từ session
+            const token = '@token';
+            const maSinhVien = '@Context.Session.GetString("MaSinhVien")';
+            if (!token) {
+                toastr.error('Bạn cần đăng nhập lại');
+                return;
+            }
+
+            // Tạo request data theo đúng format yêu cầu
+            const requestData = {
+                maSinhVien: maSinhVien,
+                hoatDongId: parseInt(currentHoatDongId), // Đảm bảo hoatDongId là số
+                trangThai: 1,
+                hinhThucDiemDanh: "KhuonMat"
+            };
+
+            // Log request details
+            console.log('Request Data:', requestData);
+            console.log('Token:', token);
+
+            try {
+                const response = await fetch('http://localhost:5032/api/ThamGia/diem-danh', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const responseText = await response.text();
+                console.log('Raw Response:', responseText);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}, Response: ${responseText}`);
+                }
+
+                const result = JSON.parse(responseText);
+                console.log('Parsed Response:', result);
+                
+                if (result.success) {
+                    toastr.success('Điểm danh thành công!');
+                    closeFaceRecognitionModal();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    toastr.error(result.message || 'Điểm danh thất bại');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                toastr.error('Đã xảy ra lỗi khi điểm danh: ' + error.message);
+            }
         }
     </script>
 } 
